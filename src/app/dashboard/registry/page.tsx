@@ -229,7 +229,7 @@ export default function PropertyRegistryPage() {
                                     <TableRow
                                         key={row.id}
                                         data-state={row.getIsSelected() && "selected"}
-                                        className="hover:bg-gray-50 border-gray-100 even:bg-slate-50/50"
+                                        className="hover:bg-gray-50 border-gray-100 even:bg-gray-100/60"
                                     >
                                         {row.getVisibleCells().map((cell) => (
                                             <TableCell key={cell.id} className="py-3 text-sm">
