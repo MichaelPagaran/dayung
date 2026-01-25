@@ -9,7 +9,6 @@ import {
     Wallet,
     Settings,
     LogOut,
-    Menu,
     Warehouse
 } from "lucide-react";
 import { cn } from "@/lib/utils";

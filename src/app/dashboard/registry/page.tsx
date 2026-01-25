@@ -8,11 +8,9 @@ import {
     useReactTable,
 } from "@tanstack/react-table";
 import {
-    Building2,
     Filter,
     Plus,
     Trash2,
-    MoreHorizontal,
     Eye,
     SquarePen
 } from "lucide-react";
@@ -20,7 +18,6 @@ import {
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Badge } from "@/components/ui/badge";
 import {
     Table,
     TableBody,
@@ -29,7 +26,7 @@ import {
     TableHeader,
     TableRow,
 } from "@/components/ui/table";
-import { CustomSelect } from "@/components/ui/select-custom";
+import { Combobox } from "@/components/ui/combobox";
 
 // --- Types ---
 type Property = {
@@ -42,7 +39,7 @@ type Property = {
 }
 
 // --- Mock Data ---
-const MOCK_DATA: Property[] = Array.from({ length: 15 }).map((_, i) => ({
+const MOCK_DATA: Property[] = Array.from({ length: 15 }, () => ({
     id: `System_Defined`,
     block: "#",
     lot: "#",
@@ -52,7 +49,7 @@ const MOCK_DATA: Property[] = Array.from({ length: 15 }).map((_, i) => ({
 }));
 
 // --- Mock Metadata ---
-const MOCK_BLOCKS = Array.from({ length: 25 }).map((_, i) => ({
+const MOCK_BLOCKS = Array.from({ length: 25 }, (_, i) => ({
     label: `Block ${i + 1}`,
     value: `${i + 1}`,
 }));
@@ -137,8 +134,8 @@ export default function PropertyRegistryPage() {
         <div className="space-y-6">
             {/* 1. Header */}
             <div>
-                <h1 className="text-2xl font-bold text-brand">Property Registry</h1>
-                <p className="mt-1 text-sm text-gray-500">Manage units, view ownership details, and track payment status.</p>
+                <h1 className="text-2xl text-brand typography-h1">Property Registry</h1>
+                <p className="mt-1 text-sm text-gray-500 font-sans">Manage units, view ownership details, and track payment status.</p>
             </div>
 
             {/* 2. Main Content Card */}
@@ -148,8 +145,7 @@ export default function PropertyRegistryPage() {
                     <div className="flex items-center gap-3">
                         <Input placeholder="Search" className="w-[300px] bg-gray-50 border-gray-200" />
                         <Button
-                            variant="primary"
-                            className="bg-primary-500 hover:bg-primary-600 gap-2"
+                            className="bg-primary-500 hover:bg-primary-600 gap-2 typography-btn"
                             onClick={() => setShowFilters(!showFilters)}
                         >
                             <Filter className="h-4 w-4" /> Filter
@@ -157,10 +153,10 @@ export default function PropertyRegistryPage() {
                     </div>
 
                     <div className="flex items-center gap-3">
-                        <Button variant="outline" className="gap-2 text-brand border-brand hover:bg-brand-light">
+                        <Button variant="outline" className="gap-2 text-brand border-brand hover:bg-brand-light typography-btn">
                             <Plus className="h-4 w-4" /> Add Property
                         </Button>
-                        <Button variant="danger" className="gap-2 bg-danger text-white hover:bg-red-600">
+                        <Button variant="destructive" className="gap-2 bg-danger text-white hover:bg-red-600 typography-btn">
                             <Trash2 className="h-4 w-4" /> Delete
                         </Button>
                     </div>
@@ -171,7 +167,7 @@ export default function PropertyRegistryPage() {
                     <div className="flex flex-wrap gap-4 px-4 pb-4 animate-in fade-in slide-in-from-top-1">
                         {/* Block */}
                         <div className="w-full sm:w-[200px]">
-                            <CustomSelect
+                            <Combobox
                                 placeholder="Select Block"
                                 options={MOCK_BLOCKS}
                                 value={filters.block}
@@ -181,7 +177,7 @@ export default function PropertyRegistryPage() {
 
                         {/* Occupancy */}
                         <div className="w-full sm:w-[200px]">
-                            <CustomSelect
+                            <Combobox
                                 placeholder="Select Occupancy"
                                 options={MOCK_OCCUPANCY}
                                 value={filters.occupancy}
@@ -191,7 +187,7 @@ export default function PropertyRegistryPage() {
 
                         {/* Membership Status */}
                         <div className="w-full sm:w-[200px]">
-                            <CustomSelect
+                            <Combobox
                                 placeholder="Select Status"
                                 options={MOCK_STATUS}
                                 value={filters.status}

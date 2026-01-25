@@ -1,48 +1,137 @@
-@import "tailwindcss";
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
 
-@theme {
-  /* Dayung Teal Palette */
-  --color-primary-50: #f0fdfa;
-  --color-primary-100: #ccfbf1;
-  --color-primary-200: #99f6e4;
-  --color-primary-300: #5eead4;
-  --color-primary-400: #2dd4bf;
-  --color-primary-500: #14b8a6;
-  --color-primary-600: #0d9488;
-  --color-primary-700: #0f766e;
-  --color-primary-800: #115e59;
-  --color-primary-900: #134e4a;
-
-  /* Semantic Aliases */
-  --color-brand: var(--color-primary-600);
-  --color-brand-hover: var(--color-primary-700);
-  --color-brand-light: var(--color-primary-50);
-
-  /* Status Colors */
-  --color-success: #10b981;
-  --color-warning: #f59e0b;
-  --color-danger: #ef4444;
-
+:root {
   /* Layout Colors */
   --color-sidebar-bg: #ffffff;
   --color-page-bg: #f8fafc;
   --color-card-bg: #ffffff;
   --color-border: #e2e8f0;
+
+  --background: 0 0% 100%;
+  --foreground: 222.2 84% 4.9%;
+
+  --card: 0 0% 100%;
+  --card-foreground: 222.2 84% 4.9%;
+
+  --popover: 0 0% 100%;
+  --popover-foreground: 222.2 84% 4.9%;
+
+  /* Dayung Branding (Teal-600 #0d9488 approx 175 83% 31%) */
+  --primary: 175 83% 31%;
+  --primary-foreground: 210 40% 98%;
+
+  --secondary: 210 40% 96.1%;
+  --secondary-foreground: 222.2 47.4% 11.2%;
+
+  --muted: 210 40% 96.1%;
+  --muted-foreground: 215.4 16.3% 46.9%;
+
+  --accent: 210 40% 96.1%;
+  --accent-foreground: 222.2 47.4% 11.2%;
+
+  --destructive: 0 84.2% 60.2%;
+  --destructive-foreground: 210 40% 98%;
+
+  --border: 214.3 31.8% 91.4%;
+  --input: 214.3 31.8% 91.4%;
+  --ring: 175 83% 31%;
+
+  --radius: 0.5rem;
 }
 
-/* Base Reset */
-:root {
-  --background: var(--color-page-bg);
-  --foreground: #0f172a;
+.dark {
+  --background: 222.2 84% 4.9%;
+  --foreground: 210 40% 98%;
+
+  --card: 222.2 84% 4.9%;
+  --card-foreground: 210 40% 98%;
+
+  --popover: 222.2 84% 4.9%;
+  --popover-foreground: 210 40% 98%;
+
+  --primary: 175 83% 31%;
+  --primary-foreground: 210 40% 98%;
+
+  --secondary: 217.2 32.6% 17.5%;
+  --secondary-foreground: 210 40% 98%;
+
+  --muted: 217.2 32.6% 17.5%;
+  --muted-foreground: 215 20.2% 65.1%;
+
+  --accent: 217.2 32.6% 17.5%;
+  --accent-foreground: 210 40% 98%;
+
+  --destructive: 0 62.8% 30.6%;
+  --destructive-foreground: 210 40% 98%;
+
+  --border: 217.2 32.6% 17.5%;
+  --input: 217.2 32.6% 17.5%;
+  --ring: 175 83% 31%;
 }
 
 body {
   background-color: var(--background);
-  color: var(--foreground);
   font-family: var(--font-sans);
 }
 
-/* Utility for glassmorphism if needed */
+/* Utility for glassmorphism */
 .glass {
   @apply backdrop-blur-md bg-white/70 border border-white/20;
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+  }
+}
+
+@layer utilities {
+
+  /* Typography System - Roboto Flex */
+
+  /* H1: Page Title - 800 wght, 120 wdth, 0 GRAD */
+  .typography-h1 {
+    font-family: var(--font-roboto-flex);
+    font-variation-settings: 'wght' 800, 'wdth' 120, 'GRAD' 0;
+    @apply tracking-tight;
+  }
+
+  /* Section Headers - 700 wght, 100 wdth, 0 GRAD */
+  .typography-section {
+    font-family: var(--font-roboto-flex);
+    font-variation-settings: 'wght' 700, 'wdth' 100, 'GRAD' 0;
+    @apply tracking-normal;
+  }
+
+  /* Body text - 400 wght, 100 wdth, -25 GRAD */
+  .typography-body {
+    font-family: var(--font-roboto-flex);
+    font-variation-settings: 'wght' 400, 'wdth' 100, 'GRAD' -25;
+  }
+
+  /* Small Labels - 500 wght, 90 wdth, 50 GRAD */
+  .typography-label {
+    font-family: var(--font-roboto-flex);
+    font-variation-settings: 'wght' 500, 'wdth' 90, 'GRAD' 50;
+  }
+
+  /* Button Text - 600 wght, 110 wdth, 80 GRAD */
+  .typography-btn {
+    font-family: var(--font-roboto-flex);
+    font-variation-settings: 'wght' 600, 'wdth' 110, 'GRAD' 80;
+    @apply uppercase tracking-wide;
+  }
+
+  /* Numbers - Tabular */
+  .typography-num {
+    font-family: var(--font-roboto-flex);
+    font-variation-settings: 'wght' 400;
+    @apply tabular-nums;
+  }
 }
