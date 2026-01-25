@@ -1,0 +1,23 @@
+version: '3'
+
+services:
+  web:
+    container_name: dayung-web
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: runner # Or 'deps'/'builder' for dev? Usually dev uses a different command.
+    # For development, we usually just map the volume and run npm run dev
+    # Overriding the command for dev environment:
+    command: npm run dev
+    volumes:
+      - .:/app
+      - /app/node_modules
+    ports:
+      - "3000:3000"
+    environment:
+      - NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL:-http://localhost:8000/api}
+    restart: always
+
+# Note: This compose file assumes you are running dev. 
+# For production, remove the 'command' and 'volumes' overrides to use the built image.
