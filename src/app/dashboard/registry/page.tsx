@@ -143,7 +143,7 @@ export default function PropertyRegistryPage() {
                 {/* Toolbar */}
                 <div className="flex flex-col gap-4 p-4 md:flex-row md:items-center md:justify-between">
                     <div className="flex items-center gap-3">
-                        <Input placeholder="Search" className="w-[300px] bg-gray-50 border-gray-200" />
+                        <Input placeholder="Search" className="w-full sm:w-[300px] bg-gray-50 border-gray-200" />
                         <Button
                             className="bg-primary-500 hover:bg-primary-600 gap-2 typography-btn"
                             onClick={() => setShowFilters(!showFilters)}

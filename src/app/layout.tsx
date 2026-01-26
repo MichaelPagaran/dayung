@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { fontMain } from "@/lib/fonts";
+import { fontVariables } from "@/lib/fonts";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -15,10 +15,11 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body
-        className={`${fontMain.variable} font-sans antialiased`}
+        className={`${fontVariables} font-body antialiased`}
       >
         {children}
       </body>
     </html>
   );
 }
+

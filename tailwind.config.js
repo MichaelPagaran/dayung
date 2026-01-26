@@ -69,8 +69,9 @@ module.exports = {
 				}
 			},
 			fontFamily: {
-				sans: ['var(--font-roboto-flex)', 'sans-serif'],
-				heading: ['var(--font-roboto-flex)', 'sans-serif'],
+				heading: ['var(--font-heading)', 'sans-serif'],
+				body: ['var(--font-body)', 'sans-serif'],
+				sans: ['var(--font-body)', 'sans-serif'],
 			},
 			borderRadius: {
 				lg: 'var(--radius)',

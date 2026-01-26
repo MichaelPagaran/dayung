@@ -73,7 +73,7 @@
 
 body {
   background-color: var(--background);
-  font-family: var(--font-sans);
+  font-family: var(--font-body);
 }
 
 /* Utility for glassmorphism */
@@ -93,45 +93,73 @@ body {
 
 @layer utilities {
 
-  /* Typography System - Roboto Flex */
+  /* Typography System - Geist Sans + Inter Variable */
 
-  /* H1: Page Title - 800 wght, 120 wdth, 0 GRAD */
+  /* H1: Page Title - Geist Sans 800 */
   .typography-h1 {
-    font-family: var(--font-roboto-flex);
-    font-variation-settings: 'wght' 800, 'wdth' 120, 'GRAD' 0;
+    font-family: var(--font-heading);
+    font-weight: 800;
     @apply tracking-tight;
   }
 
-  /* Section Headers - 700 wght, 100 wdth, 0 GRAD */
+  /* Section Headers (H2-H3) - Geist Sans 600 */
   .typography-section {
-    font-family: var(--font-roboto-flex);
-    font-variation-settings: 'wght' 700, 'wdth' 100, 'GRAD' 0;
+    font-family: var(--font-heading);
+    font-weight: 600;
     @apply tracking-normal;
   }
 
-  /* Body text - 400 wght, 100 wdth, -25 GRAD */
+  /* Navigation - Geist Sans 500 */
+  .typography-nav {
+    font-family: var(--font-heading);
+    font-weight: 500;
+  }
+
+  /* Body text - Inter 400 */
   .typography-body {
-    font-family: var(--font-roboto-flex);
-    font-variation-settings: 'wght' 400, 'wdth' 100, 'GRAD' -25;
+    font-family: var(--font-body);
+    font-weight: 400;
   }
 
-  /* Small Labels - 500 wght, 90 wdth, 50 GRAD */
+  /* Small Labels - Inter 600 */
   .typography-label {
-    font-family: var(--font-roboto-flex);
-    font-variation-settings: 'wght' 500, 'wdth' 90, 'GRAD' 50;
+    font-family: var(--font-body);
+    font-weight: 600;
   }
 
-  /* Button Text - 600 wght, 110 wdth, 80 GRAD */
+  /* Button Text - Geist Sans 600 */
   .typography-btn {
-    font-family: var(--font-roboto-flex);
-    font-variation-settings: 'wght' 600, 'wdth' 110, 'GRAD' 80;
+    font-family: var(--font-heading);
+    font-weight: 600;
     @apply uppercase tracking-wide;
   }
 
-  /* Numbers - Tabular */
+  /* Numbers/Data - Inter 400 with tabular-nums */
   .typography-num {
-    font-family: var(--font-roboto-flex);
-    font-variation-settings: 'wght' 400;
+    font-family: var(--font-body);
+    font-weight: 400;
     @apply tabular-nums;
+  }
+
+  /* Flex Layout Shortcuts */
+  .flex-center {
+    @apply flex items-center justify-center;
+  }
+
+  .flex-between {
+    @apply flex items-center justify-between;
+  }
+
+  .flex-responsive {
+    @apply flex flex-col gap-4 md:flex-row;
+  }
+
+  /* Responsive Containers */
+  .container-responsive {
+    @apply w-full px-4 sm:px-6 lg:px-8;
+  }
+
+  .main-content {
+    @apply flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8;
   }
 }

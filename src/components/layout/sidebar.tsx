@@ -25,7 +25,7 @@ export function Sidebar() {
     const pathname = usePathname();
 
     return (
-        <div className="flex h-screen w-64 flex-col border-r border-border bg-sidebar-bg">
+        <div className="hidden md:flex h-screen w-64 flex-col border-r border-border bg-sidebar-bg">
             {/* Header */}
             <div className="p-6">
                 <h1 className="text-xl font-bold text-brand flex items-center gap-2">
