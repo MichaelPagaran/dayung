@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { fontVariables } from "@/lib/fonts";
+import { AuthProvider } from "@/lib/auth-context";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -17,9 +18,10 @@ export default function RootLayout({
       <body
         className={`${fontVariables} font-body antialiased`}
       >
-        {children}
+        <AuthProvider>
+          {children}
+        </AuthProvider>
       </body>
     </html>
   );
 }
-

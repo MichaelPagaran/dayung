@@ -1,21 +1,31 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { Home } from "lucide-react";
+import { Home, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
+import { useAuth } from "@/lib/auth-context";
 
 export function LoginForm() {
-    const [email, setEmail] = useState("");
+    const router = useRouter();
+    const { login, isLoading, error, clearError } = useAuth();
+
+    const [username, setUsername] = useState("");
     const [password, setPassword] = useState("");
     const [rememberMe, setRememberMe] = useState(false);
 
-    const handleSubmit = (e: React.FormEvent) => {
+    const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        // TODO: Implement actual login logic
-        console.log({ email, password, rememberMe });
+        clearError();
+
+        const success = await login({ username, password });
+
+        if (success) {
+            router.push("/dashboard");
+        }
     };
 
     return (
@@ -38,24 +48,32 @@ export function LoginForm() {
                 </p>
             </div>
 
+            {/* Error Alert */}
+            {error && (
+                <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
+                    <p className="text-sm text-red-600 font-body">{error}</p>
+                </div>
+            )}
+
             {/* Form */}
             <form onSubmit={handleSubmit} className="space-y-6">
-                {/* Email */}
+                {/* Username */}
                 <div className="space-y-2">
                     <label
-                        htmlFor="email"
+                        htmlFor="username"
                         className="block text-sm font-body font-semibold text-gray-900"
                     >
-                        Email Address
+                        Username
                     </label>
                     <Input
-                        id="email"
-                        type="email"
-                        placeholder="Enter Email Address"
-                        value={email}
-                        onChange={(e) => setEmail(e.target.value)}
+                        id="username"
+                        type="text"
+                        placeholder="Enter Username"
+                        value={username}
+                        onChange={(e) => setUsername(e.target.value)}
                         className="w-full"
                         required
+                        disabled={isLoading}
                     />
                 </div>
 
@@ -75,6 +93,7 @@ export function LoginForm() {
                         onChange={(e) => setPassword(e.target.value)}
                         className="w-full"
                         required
+                        disabled={isLoading}
                     />
                 </div>
 
@@ -87,6 +106,7 @@ export function LoginForm() {
                             onCheckedChange={(checked) =>
                                 setRememberMe(checked as boolean)
                             }
+                            disabled={isLoading}
                         />
                         <label
                             htmlFor="remember"
@@ -107,8 +127,16 @@ export function LoginForm() {
                 <Button
                     type="submit"
                     className="w-full bg-brand hover:bg-brand-hover text-white font-heading font-semibold py-6"
+                    disabled={isLoading}
                 >
-                    Log In
+                    {isLoading ? (
+                        <>
+                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                            Logging in...
+                        </>
+                    ) : (
+                        "Log In"
+                    )}
                 </Button>
             </form>
 
