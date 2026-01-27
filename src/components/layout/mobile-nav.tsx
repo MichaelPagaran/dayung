@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import {
     Menu,
     X,
@@ -21,6 +21,7 @@ import {
     DialogContent,
     DialogTitle,
 } from "@/components/ui/dialog";
+import { useAuth } from "@/lib/auth-context";
 
 const navigation = [
     { name: "Dashboard", href: "/dashboard", icon: LayoutDashboard, disabled: true },
@@ -33,6 +34,14 @@ const navigation = [
 export function MobileNav() {
     const [open, setOpen] = useState(false);
     const pathname = usePathname();
+    const router = useRouter();
+    const { logout } = useAuth();
+
+    const handleLogout = async () => {
+        setOpen(false);
+        await logout();
+        router.push("/login");
+    };
 
     return (
         <>
@@ -115,6 +124,7 @@ export function MobileNav() {
                             Settings
                         </Link>
                         <button
+                            onClick={handleLogout}
                             className="w-full flex items-center rounded-md px-3 py-3 text-sm font-medium text-gray-600 hover:bg-gray-50 hover:text-gray-900"
                         >
                             <LogOut className="mr-3 h-5 w-5 text-gray-400" />
@@ -126,3 +136,4 @@ export function MobileNav() {
         </>
     );
 }
+

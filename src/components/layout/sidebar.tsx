@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import {
     LayoutDashboard,
     Building2,
@@ -12,6 +12,7 @@ import {
     Warehouse
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useAuth } from "@/lib/auth-context";
 
 const navigation = [
     { name: "Dashboard", href: "/dashboard", icon: LayoutDashboard, disabled: true },
@@ -23,6 +24,13 @@ const navigation = [
 
 export function Sidebar() {
     const pathname = usePathname();
+    const router = useRouter();
+    const { logout } = useAuth();
+
+    const handleLogout = async () => {
+        await logout();
+        router.push("/login");
+    };
 
     return (
         <div className="hidden md:flex h-screen w-64 flex-col border-r border-border bg-sidebar-bg">
@@ -75,8 +83,8 @@ export function Sidebar() {
                     <Settings className="mr-3 h-5 w-5 text-gray-400 group-hover:text-gray-500" />
                     Settings
                 </Link>
-                {/* Placeholder Logout - In real app, this would be a button calling logout logic */}
                 <button
+                    onClick={handleLogout}
                     className="w-full flex items-center rounded-md px-3 py-2.5 text-sm font-medium text-gray-600 hover:bg-gray-50 hover:text-gray-900"
                 >
                     <LogOut className="mr-3 h-5 w-5 text-gray-400 group-hover:text-gray-500" />
@@ -86,3 +94,4 @@ export function Sidebar() {
         </div>
     );
 }
+
