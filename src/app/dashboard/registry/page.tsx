@@ -29,9 +29,34 @@ import {
     TableHeader,
     TableRow,
 } from "@/components/ui/table";
+import {
+    Tooltip,
+    TooltipContent,
+    TooltipProvider,
+    TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { Combobox } from "@/components/ui/combobox";
 import { useDebounce } from "@/hooks/use-debounce";
+import { cn } from "@/lib/utils";
 import { registryApi, Unit, FilterOptions } from "@/lib/services/registry";
+
+// --- Helper Components ---
+function TruncatedCell({ children, className }: { children: React.ReactNode; className?: string }) {
+    return (
+        <TooltipProvider>
+            <Tooltip delayDuration={300}>
+                <TooltipTrigger asChild>
+                    <span className={cn("truncate block max-w-[150px] cursor-default", className)}>
+                        {children}
+                    </span>
+                </TooltipTrigger>
+                <TooltipContent>
+                    <p className="max-w-[300px] break-words">{children}</p>
+                </TooltipContent>
+            </Tooltip>
+        </TooltipProvider>
+    );
+}
 
 // --- Status Display Helpers ---
 const OCCUPANCY_LABELS: Record<string, string> = {
@@ -73,37 +98,37 @@ const columns: ColumnDef<Unit>[] = [
         accessorKey: "id",
         header: "Unit ID",
         cell: ({ row }) => (
-            <span className="text-gray-600 text-xs font-mono">
-                {(row.getValue("id") as string).slice(0, 8)}...
-            </span>
+            <TruncatedCell className="text-gray-600 text-xs font-mono">
+                {row.getValue("id")}
+            </TruncatedCell>
         ),
     },
     {
         accessorKey: "section_identifier",
         header: "Block",
-        cell: ({ row }) => <span className="text-gray-600">{row.getValue("section_identifier")}</span>,
+        cell: ({ row }) => <TruncatedCell className="text-gray-600">{row.getValue("section_identifier")}</TruncatedCell>,
     },
     {
         accessorKey: "unit_identifier",
         header: "Lot",
-        cell: ({ row }) => <span className="text-gray-600">{row.getValue("unit_identifier")}</span>,
+        cell: ({ row }) => <TruncatedCell className="text-gray-600">{row.getValue("unit_identifier")}</TruncatedCell>,
     },
     {
         accessorKey: "owner_name",
         header: "Owner",
-        cell: ({ row }) => (
-            <span className="text-gray-600">
-                {row.getValue("owner_name") || <span className="text-gray-400 italic">No owner</span>}
-            </span>
-        ),
+        cell: ({ row }) => {
+            const name = row.getValue("owner_name") as string;
+            if (!name) return <span className="text-gray-400 italic">No owner</span>;
+            return <TruncatedCell className="text-gray-600">{name}</TruncatedCell>;
+        },
     },
     {
         accessorKey: "occupancy_status",
         header: "Occupancy",
         cell: ({ row }) => (
-            <span className="text-gray-600">
+            <TruncatedCell className="text-gray-600">
                 {OCCUPANCY_LABELS[row.getValue("occupancy_status") as string] || row.getValue("occupancy_status")}
-            </span>
+            </TruncatedCell>
         ),
     },
     {
@@ -117,7 +142,7 @@ const columns: ColumnDef<Unit>[] = [
                 DELINQUENT: "text-danger",
                 NON_MEMBER: "text-gray-500",
             }[status] || "text-gray-600";
-            return <span className={colorClasses}>{label}</span>;
+            return <TruncatedCell className={colorClasses}>{label}</TruncatedCell>;
         },
     },
     {
