@@ -51,7 +51,7 @@ export const registryApi = {
         if (filters?.membership) params.append('membership', filters.membership);
 
         const queryString = params.toString();
-        const url = queryString ? `/registry?${queryString}` : '/registry';
+        const url = queryString ? `/registry/units?${queryString}` : '/registry/units';
 
         const response = await api.get<Unit[]>(url);
         return response.data;
@@ -61,7 +61,7 @@ export const registryApi = {
      * Get distinct values for filter dropdowns.
      */
     getFilterOptions: async (): Promise<FilterOptions> => {
-        const response = await api.get<FilterOptions>('/registry/filter-options');
+        const response = await api.get<FilterOptions>('/registry/units/filter-options');
         return response.data;
     },
 
@@ -69,7 +69,7 @@ export const registryApi = {
      * Create a new unit.
      */
     createUnit: async (data: Omit<Unit, 'id' | 'org_id' | 'is_active'>): Promise<Unit> => {
-        const response = await api.post<Unit>('/registry', data);
+        const response = await api.post<Unit>('/registry/units', data);
         return response.data;
     },
 
@@ -77,7 +77,7 @@ export const registryApi = {
      * Update an existing unit.
      */
     updateUnit: async (id: string, data: Partial<Unit>): Promise<Unit> => {
-        const response = await api.put<Unit>(`/registry/${id}`, data);
+        const response = await api.put<Unit>(`/registry/units/${id}`, data);
         return response.data;
     },
 
@@ -85,14 +85,14 @@ export const registryApi = {
      * Soft delete a unit.
      */
     deleteUnit: async (id: string): Promise<void> => {
-        await api.delete(`/registry/${id}`);
+        await api.delete(`/registry/units/${id}`);
     },
 
     /**
      * Bulk delete units.
      */
     bulkDeleteUnits: async (ids: string[]): Promise<{ deleted: number }> => {
-        const response = await api.post<{ deleted: number }>('/registry/bulk-delete', { unit_ids: ids });
+        const response = await api.post<{ deleted: number }>('/registry/units/bulk-delete', { unit_ids: ids });
         return response.data;
     },
 };

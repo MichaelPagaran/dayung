@@ -16,7 +16,7 @@ import {
     Loader2
 } from "lucide-react";
 
-import { Card } from "@/components/ui/card";
+import { ListPageLayout } from "@/components/layout/list-page-layout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -112,33 +112,29 @@ const columns: ColumnDef<Unit>[] = [
         cell: ({ row }) => {
             const status = row.getValue("membership_status") as string;
             const label = MEMBERSHIP_LABELS[status] || status;
-
             const colorClasses = {
                 GOOD_STANDING: "text-success",
                 DELINQUENT: "text-danger",
                 NON_MEMBER: "text-gray-500",
             }[status] || "text-gray-600";
-
             return <span className={colorClasses}>{label}</span>;
         },
     },
     {
         id: "actions",
-        cell: () => {
-            return (
-                <div className="flex items-center gap-1">
-                    <Button variant="outline" size="sm" className="h-7 w-7 p-0 text-brand border-brand hover:bg-brand-light">
-                        <Eye className="h-3 w-3" />
-                    </Button>
-                    <Button variant="outline" size="sm" className="h-7 w-7 p-0 text-brand border-brand hover:bg-brand-light">
-                        <SquarePen className="h-3 w-3" />
-                    </Button>
-                </div>
-            )
-        },
         header: () => <div>Action</div>,
+        cell: () => (
+            <div className="flex items-center gap-1">
+                <Button variant="outline" size="sm" className="h-7 w-7 p-0 text-brand border-brand hover:bg-brand-light">
+                    <Eye className="h-3 w-3" />
+                </Button>
+                <Button variant="outline" size="sm" className="h-7 w-7 p-0 text-brand border-brand hover:bg-brand-light">
+                    <SquarePen className="h-3 w-3" />
+                </Button>
+            </div>
+        ),
     },
-]
+];
 
 export default function PropertyRegistryPage() {
     // UI State
@@ -163,10 +159,9 @@ export default function PropertyRegistryPage() {
         membership: [],
     });
     const [isLoading, setIsLoading] = React.useState(true);
-    const [refreshKey, setRefreshKey] = React.useState(0); // Trigger to reload data
+    const [refreshKey, setRefreshKey] = React.useState(0);
     const [error, setError] = React.useState<string | null>(null);
 
-    // Debounce search input (300ms delay)
     const debouncedSearch = useDebounce(search, 300);
 
     // Fetch filter options on mount
@@ -195,7 +190,6 @@ export default function PropertyRegistryPage() {
                     membership: filters.membership || undefined,
                 });
                 setUnits(data);
-                // Reset selection on data reload
                 setRowSelection({});
             } catch (err) {
                 console.error("Failed to fetch units:", err);
@@ -213,13 +207,10 @@ export default function PropertyRegistryPage() {
         try {
             const selectedIds = Object.keys(rowSelection);
             await registryApi.bulkDeleteUnits(selectedIds);
-
-            // Success - refresh list
             setShowDeleteConfirm(false);
             setRefreshKey(prev => prev + 1);
         } catch (err) {
             console.error("Delete failed:", err);
-            // In a real app, show a toast here
             setError("Failed to delete selected units.");
         } finally {
             setIsDeleting(false);
@@ -241,28 +232,22 @@ export default function PropertyRegistryPage() {
         data: units,
         columns,
         getCoreRowModel: getCoreRowModel(),
-        getRowId: (row) => row.id, // Use ID as key for selection
+        getRowId: (row) => row.id,
         enableRowSelection: true,
         onRowSelectionChange: setRowSelection,
-        state: {
-            rowSelection,
-        },
-    })
+        state: { rowSelection },
+    });
 
     const selectedCount = Object.keys(rowSelection).length;
 
     return (
-        <div className="space-y-6">
-            {/* 1. Header */}
-            <div>
-                <h1 className="text-2xl text-brand typography-h1">Property Registry</h1>
-                <p className="mt-1 text-sm text-gray-500 font-sans">Manage units, view ownership details, and track payment status.</p>
-            </div>
-
-            {/* 2. Main Content Card */}
-            <Card className="min-h-[600px] border-none shadow-none bg-white">
-                {/* Toolbar */}
-                <div className="flex flex-col gap-4 p-4 md:flex-row md:items-center md:justify-between">
+        <>
+            <ListPageLayout
+                title="Property Registry"
+                subtitle="Manage units, view ownership details, and track payment status."
+            >
+                {/* Toolbar Row - Inside data card */}
+                <div className="flex-shrink-0 flex flex-col gap-4 p-4 border-b border-gray-100 md:flex-row md:items-center md:justify-between">
                     <div className="flex items-center gap-3">
                         <Input
                             placeholder="Search owner, block, lot..."
@@ -294,46 +279,42 @@ export default function PropertyRegistryPage() {
                     </div>
                 </div>
 
-                {/* Filter Controls Row */}
+                {/* Filter Row - Separate row below toolbar */}
                 {showFilters && (
-                    <div className="flex flex-wrap gap-4 px-4 pb-4 animate-in fade-in slide-in-from-top-1">
-                        {/* Block */}
+                    <div className="flex-shrink-0 flex flex-wrap gap-3 items-center p-4 border-b border-gray-100 bg-gray-50/50">
                         <div className="w-full sm:w-[200px]">
                             <Combobox
                                 placeholder="Select Block"
                                 options={blockOptions}
                                 value={filters.section}
                                 onChange={(val) => setFilters(prev => ({ ...prev, section: val }))}
+                                className="h-10"
                             />
                         </div>
-
-                        {/* Occupancy */}
                         <div className="w-full sm:w-[200px]">
                             <Combobox
                                 placeholder="Select Occupancy"
                                 options={occupancyOptions}
                                 value={filters.occupancy}
                                 onChange={(val) => setFilters(prev => ({ ...prev, occupancy: val }))}
+                                className="h-10"
                             />
                         </div>
-
-                        {/* Membership Status */}
                         <div className="w-full sm:w-[200px]">
                             <Combobox
                                 placeholder="Select Status"
                                 options={membershipOptions}
                                 value={filters.membership}
                                 onChange={(val) => setFilters(prev => ({ ...prev, membership: val }))}
+                                className="h-10"
                             />
                         </div>
-
-                        {/* Clear Filters */}
                         {(filters.section || filters.occupancy || filters.membership) && (
                             <Button
                                 variant="ghost"
                                 size="sm"
                                 onClick={() => setFilters({ section: "", occupancy: "", membership: "" })}
-                                className="text-gray-500 hover:text-gray-700"
+                                className="text-gray-500 hover:text-gray-700 h-10 px-4"
                             >
                                 Clear filters
                             </Button>
@@ -341,7 +322,8 @@ export default function PropertyRegistryPage() {
                     </div>
                 )}
 
-                <div className="px-4 pb-2 text-xs text-gray-400">
+                {/* Status Row */}
+                <div className="flex-shrink-0 px-4 py-2 text-xs text-gray-400 border-b border-gray-100">
                     {isLoading ? (
                         <span className="flex items-center gap-2">
                             <Loader2 className="h-3 w-3 animate-spin" /> Loading...
@@ -353,29 +335,24 @@ export default function PropertyRegistryPage() {
 
                 {/* Error State */}
                 {error && (
-                    <div className="mx-4 mb-4 p-4 bg-red-50 border border-red-200 rounded-md text-red-600 text-sm">
+                    <div className="flex-shrink-0 mx-4 my-4 p-4 bg-red-50 border border-red-200 rounded-md text-red-600 text-sm">
                         {error}
                     </div>
                 )}
 
-                {/* Data Table */}
-                <div className="">
+                {/* Scrollable Table Area */}
+                <div className="flex-1 min-h-0 overflow-y-auto">
                     <Table>
                         <TableHeader>
                             {table.getHeaderGroups().map((headerGroup) => (
                                 <TableRow key={headerGroup.id} className="bg-gray-50 hover:bg-gray-50 border-gray-100">
-                                    {headerGroup.headers.map((header) => {
-                                        return (
-                                            <TableHead key={header.id} className="text-gray-500 font-medium text-xs uppercase tracking-wider h-10">
-                                                {header.isPlaceholder
-                                                    ? null
-                                                    : flexRender(
-                                                        header.column.columnDef.header,
-                                                        header.getContext()
-                                                    )}
-                                            </TableHead>
-                                        )
-                                    })}
+                                    {headerGroup.headers.map((header) => (
+                                        <TableHead key={header.id} className="text-gray-500 font-medium text-xs uppercase tracking-wider h-10 sticky top-0 z-10 bg-gray-50">
+                                            {header.isPlaceholder
+                                                ? null
+                                                : flexRender(header.column.columnDef.header, header.getContext())}
+                                        </TableHead>
+                                    ))}
                                 </TableRow>
                             ))}
                         </TableHeader>
@@ -418,7 +395,7 @@ export default function PropertyRegistryPage() {
                         </TableBody>
                     </Table>
                 </div>
-            </Card>
+            </ListPageLayout>
 
             {/* Delete Confirmation Dialog */}
             <ConfirmDialog
@@ -431,6 +408,6 @@ export default function PropertyRegistryPage() {
                 onConfirm={handleBulkDelete}
                 isLoading={isDeleting}
             />
-        </div>
+        </>
     );
 }
