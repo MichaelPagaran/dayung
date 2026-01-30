@@ -19,6 +19,8 @@ export interface Unit {
     membership_status: 'GOOD_STANDING' | 'DELINQUENT' | 'NON_MEMBER';
     occupancy_status: 'INHABITED' | 'VACANT' | 'UNDER_CONSTRUCTION';
     is_active: boolean;
+    latitude?: number;
+    longitude?: number;
 }
 
 export interface FilterOptions {
@@ -39,6 +41,14 @@ export interface UnitFilters {
 // =============================================================================
 
 export const registryApi = {
+    /**
+     * Get a single unit by ID.
+     */
+    getUnit: async (id: string): Promise<Unit> => {
+        const response = await api.get<Unit>(`/registry/units/${id}`);
+        return response.data;
+    },
+
     /**
      * Get all units with optional search and filtering.
      */

@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import { useRouter } from "next/navigation";
 import {
     ColumnDef,
     flexRender,
@@ -162,6 +163,8 @@ const columns: ColumnDef<Unit>[] = [
 ];
 
 export default function PropertyRegistryPage() {
+    const router = useRouter();
+
     // UI State
     const [showFilters, setShowFilters] = React.useState(false);
     const [search, setSearch] = React.useState("");
@@ -396,7 +399,11 @@ export default function PropertyRegistryPage() {
                                     <TableRow
                                         key={row.id}
                                         data-state={row.getIsSelected() && "selected"}
-                                        className="hover:bg-gray-50 border-gray-100 even:bg-gray-100/60 transition-colors data-[state=selected]:bg-gray-100"
+                                        className="hover:bg-gray-50 border-gray-100 even:bg-gray-100/60 transition-colors data-[state=selected]:bg-gray-100 cursor-pointer"
+                                        onClick={(e) => {
+                                            if ((e.target as HTMLElement).closest('[role="checkbox"], button')) return;
+                                            router.push(`/dashboard/registry/${row.original.id}`);
+                                        }}
                                     >
                                         {row.getVisibleCells().map((cell) => (
                                             <TableCell key={cell.id} className="py-3 text-sm">
