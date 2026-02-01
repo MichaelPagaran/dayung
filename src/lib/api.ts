@@ -16,7 +16,8 @@ api.interceptors.response.use(
     (error: AxiosError) => {
         if (error.response?.status === 401) {
             // Redirect to login if unauthorized
-            if (typeof window !== 'undefined') {
+            // Redirect to login if unauthorized, but avoid loop if already on login page
+            if (typeof window !== 'undefined' && !window.location.pathname.startsWith('/login')) {
                 window.location.href = '/login?error=session_expired';
             }
         }
