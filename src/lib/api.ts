@@ -15,8 +15,10 @@ api.interceptors.response.use(
     (response) => response,
     (error: AxiosError) => {
         if (error.response?.status === 401) {
-            // Could redirect to login or trigger auth refresh
-            console.warn("Unauthorized access");
+            // Redirect to login if unauthorized
+            if (typeof window !== 'undefined') {
+                window.location.href = '/login?error=session_expired';
+            }
         }
         return Promise.reject(error);
     }

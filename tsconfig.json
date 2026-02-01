@@ -25,6 +25,9 @@
     "paths": {
       "@/*": [
         "./src/*"
+      ],
+      "@vitejs/plugin-react": [
+        "./node_modules/@vitejs/plugin-react/dist/index.d.ts"
       ]
     }
   },
