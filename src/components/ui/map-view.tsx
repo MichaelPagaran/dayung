@@ -30,6 +30,8 @@ interface MapViewProps {
     }>;
     className?: string;
     height?: string;
+    /** Whether to enable scroll wheel zoom (default: false) */
+    scrollWheelZoom?: boolean;
 }
 
 // Component to handle dynamic map movement
@@ -50,7 +52,8 @@ export function MapView({
     zoom = 16,
     markers = [],
     className = "",
-    height = "300px"
+    height = "300px",
+    scrollWheelZoom = false
 }: MapViewProps) {
 
     // Default markers if none provided but center is set (assume center is the target)
@@ -61,7 +64,7 @@ export function MapView({
             <MapContainer
                 center={center}
                 zoom={zoom}
-                scrollWheelZoom={false}
+                scrollWheelZoom={scrollWheelZoom}
                 style={{ height: "100%", width: "100%" }}
             >
                 {/* CartoDB Voyager Tiles - Clean, Premium Look */}

@@ -81,116 +81,129 @@ export default function PropertyDetailPage() {
     const hasCoordinates = unit.latitude !== null && unit.longitude !== null;
 
     return (
-        <div className="p-6 max-w-7xl mx-auto space-y-6">
-            {/* Header */}
-            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-                <div className="space-y-1">
-                    <Button
-                        variant="ghost"
-                        className="pl-0 text-gray-500 hover:text-gray-900 gap-2 mb-2"
-                        onClick={() => router.back()}
-                    >
-                        <ArrowLeft className="h-4 w-4" /> Back to Units
-                    </Button>
-                    <h1 className="text-2xl font-bold text-gray-900">Property Details</h1>
-                    <p className="text-gray-500">Review unit details, occupancy status, and associated financial records.</p>
+
+        <div className="w-full max-w-[1920px] mx-auto space-y-6">
+            {/* Header Section */}
+            <div>
+                <Button
+                    variant="ghost"
+                    className="pl-0 text-gray-500 hover:text-gray-900 gap-2 mb-4"
+                    onClick={() => router.back()}
+                >
+                    <ArrowLeft className="h-4 w-4" /> Back to Units
+                </Button>
+
+                <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-4">
+                    <div className="space-y-1">
+                        <h1 className="text-2xl text-brand typography-h1">Property Details</h1>
+                        <p className="text-sm text-gray-500 font-sans">Review unit details, occupancy status, and associated financial records.</p>
+                    </div>
+                    <div className="flex items-center gap-3">
+                        <Button variant="outline" className="gap-2 text-brand border-brand hover:bg-brand-light">
+                            <Edit className="h-4 w-4" /> Edit
+                        </Button>
+                        <Button variant="outline" className="gap-2 text-gray-600 hover:bg-gray-100">
+                            <Archive className="h-4 w-4" /> Archive
+                        </Button>
+                    </div>
                 </div>
-                <div className="flex items-center gap-3">
-                    <Button variant="outline" className="gap-2 text-brand border-brand hover:bg-brand-light">
-                        <Edit className="h-4 w-4" /> Edit
-                    </Button>
-                    <Button variant="outline" className="gap-2 text-gray-600 hover:bg-gray-100">
-                        <Archive className="h-4 w-4" /> Archive
-                    </Button>
-                </div>
+
+                {/* Divider */}
+                <div className="h-1 bg-gradient-to-r from-brand to-cyan-400 rounded-full" />
             </div>
 
-            {/* Top Row: Unit Info & Map */}
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            {/* Top Row: Unit Info, Owner, & Map */}
+            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
 
-                {/* Unit Info Card takes 2/3 space on large screens */}
-                <Card className="lg:col-span-2 shadow-sm border-gray-200">
-                    <CardHeader className="pb-4 border-b border-gray-100">
+                {/* Card 1: Unit Details */}
+                <Card className="shadow-sm border-gray-200">
+                    <CardHeader className="pb-4 border-b border-gray-100 bg-gray-50/50">
                         <div className="flex items-center justify-between">
-                            <CardTitle className="text-xl font-semibold flex items-center gap-2">
-                                {unit.location_name || "Property Location"}
+                            <CardTitle className="text-base font-semibold text-gray-900">
+                                Property Information
                             </CardTitle>
+                            <span className="text-xs font-mono text-gray-500 bg-white px-2 py-1 rounded border border-gray-200">
+                                {unit.unit_identifier}
+                            </span>
                         </div>
                     </CardHeader>
-                    <CardContent className="pt-6 grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-8">
-                        {/* Left Column: Unit Details */}
-                        <div className="space-y-6">
-                            <div>
-                                <h4 className="text-xs font-semibold uppercase tracking-wider text-gray-400 mb-1">Unit Information</h4>
-                                <div className="space-y-3">
-                                    <div>
-                                        <p className="text-sm text-gray-500">Unit ID</p>
-                                        <p className="font-mono text-gray-900 font-medium">{unit.unit_identifier}</p>
-                                    </div>
-                                    <div>
-                                        <p className="text-sm text-gray-500">Location</p>
-                                        <p className="font-medium text-gray-900">
-                                            Block {unit.section_identifier}, {unit.unit_identifier}
-                                            {unit.location_name && <span className="block text-gray-600 text-sm mt-0.5">{unit.location_name}</span>}
-                                        </p>
-                                    </div>
-                                    <div>
-                                        <p className="text-sm text-gray-500">Type</p>
-                                        <p className="font-medium text-gray-900 capitalize">{unit.category.toLowerCase()}</p>
-                                    </div>
-                                    <div>
-                                        <p className="text-sm text-gray-500">Occupancy Status</p>
-                                        <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium 
-                                            ${unit.occupancy_status === 'INHABITED' ? 'bg-green-100 text-green-700' :
-                                                unit.occupancy_status === 'VACANT' ? 'bg-yellow-100 text-yellow-700' : 'bg-gray-100 text-gray-700'}`}>
-                                            {unit.occupancy_status.replace('_', ' ')}
-                                        </span>
-                                    </div>
-                                </div>
-                            </div>
+                    <CardContent className="pt-6 space-y-5">
+                        <div>
+                            <p className="text-sm text-gray-500 mb-1">Full Location</p>
+                            <p className="font-medium text-gray-900 text-lg">
+                                {unit.location_name || "Main Street"}
+                            </p>
+                            <p className="text-gray-600 text-sm">
+                                Block {unit.section_identifier}, Lot {unit.unit_identifier}
+                            </p>
                         </div>
 
-                        {/* Right Column: Owner Details */}
-                        <div className="space-y-6">
+                        <div className="grid grid-cols-2 gap-4">
                             <div>
-                                <h4 className="text-xs font-semibold uppercase tracking-wider text-gray-400 mb-1">Owner / Resident Information</h4>
-                                <div className="space-y-3">
-                                    <div>
-                                        <p className="text-sm text-gray-500">Name</p>
-                                        <p className="font-medium text-gray-900">{unit.owner_name || "No Owner Linked"}</p>
-                                    </div>
-                                    <div>
-                                        <p className="text-sm text-gray-500">Member Status</p>
-                                        <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium 
-                                            ${unit.membership_status === 'GOOD_STANDING' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
-                                            {unit.membership_status.replace('_', ' ')}
-                                        </span>
-                                    </div>
-                                    <div>
-                                        <p className="text-sm text-gray-500">Email</p>
-                                        <p className="text-gray-900 truncate">{unit.owner_email || "—"}</p>
-                                    </div>
-                                    <div>
-                                        <p className="text-sm text-gray-500">Phone</p>
-                                        <p className="text-gray-900">{unit.owner_phone || "—"}</p>
-                                    </div>
-                                </div>
+                                <p className="text-sm text-gray-500 mb-1">Type</p>
+                                <p className="font-medium text-gray-900 capitalize">{unit.category.toLowerCase()}</p>
+                            </div>
+                            <div>
+                                <p className="text-sm text-gray-500 mb-1">Occupancy</p>
+                                <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium 
+                                    ${unit.occupancy_status === 'INHABITED' ? 'bg-green-100 text-green-800' :
+                                        unit.occupancy_status === 'VACANT' ? 'bg-yellow-100 text-yellow-800' : 'bg-gray-100 text-gray-800'}`}>
+                                    {unit.occupancy_status.replace('_', ' ')}
+                                </span>
                             </div>
                         </div>
                     </CardContent>
                 </Card>
 
-                {/* Map Card */}
-                <Card className="shadow-sm border-gray-200 overflow-hidden flex flex-col">
+                {/* Card 2: Owner Details */}
+                <Card className="shadow-sm border-gray-200">
+                    <CardHeader className="pb-4 border-b border-gray-100 bg-gray-50/50">
+                        <CardTitle className="text-base font-semibold text-gray-900 flex items-center gap-2">
+                            <User className="h-4 w-4 text-gray-500" /> Owner Details
+                        </CardTitle>
+                    </CardHeader>
+                    <CardContent className="pt-6 space-y-5">
+                        <div className="flex items-start justify-between">
+                            <div>
+                                <p className="text-sm text-gray-500 mb-1">Name</p>
+                                <p className="font-medium text-gray-900 text-lg">{unit.owner_name || "No Owner Linked"}</p>
+                            </div>
+                            <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium 
+                                ${unit.membership_status === 'GOOD_STANDING' ? 'bg-green-100 text-green-800' :
+                                    unit.membership_status === 'DELINQUENT' ? 'bg-red-100 text-red-800' : 'bg-gray-100 text-gray-600'}`}>
+                                {unit.membership_status.replace('_', ' ')}
+                            </span>
+                        </div>
+
+                        <div className="space-y-3 pt-2">
+                            <div className="flex items-center gap-3 text-sm">
+                                <span className="text-gray-500 w-16">Email:</span>
+                                <span className="text-gray-900 font-medium truncate">{unit.owner_email || "—"}</span>
+                            </div>
+                            <div className="flex items-center gap-3 text-sm">
+                                <span className="text-gray-500 w-16">Phone:</span>
+                                <span className="text-gray-900 font-medium">{unit.owner_phone || "—"}</span>
+                            </div>
+                            <div className="flex items-center gap-3 text-sm">
+                                <span className="text-gray-500 w-16">Resident:</span>
+                                <span className="text-gray-900 font-medium">{unit.resident_name || "Same as owner"}</span>
+                            </div>
+                        </div>
+                    </CardContent>
+                </Card>
+
+                {/* Card 3: Map Card */}
+                <Card className="shadow-sm border-gray-200 overflow-hidden flex flex-col min-h-[300px] xl:min-h-0">
                     <CardHeader className="pb-3 border-b border-gray-100 bg-gray-50/50">
                         <CardTitle className="text-base font-medium flex items-center gap-2">
                             <MapPin className="h-4 w-4 text-gray-500" /> Residence Map
                         </CardTitle>
                     </CardHeader>
-                    <div className="flex-1 min-h-[300px] relative bg-white">
+                    <div className="flex-1 relative bg-white">
                         <MapView
                             center={mapCenter}
                             zoom={18}
+                            scrollWheelZoom={true}
                             markers={hasCoordinates ? [{
                                 position: mapCenter,
                                 title: `Block ${unit.section_identifier} Lot ${unit.unit_identifier}`
@@ -201,7 +214,7 @@ export default function PropertyDetailPage() {
                         {!hasCoordinates && (
                             <div className="absolute inset-x-0 bottom-4 text-center z-[1000] pointer-events-none">
                                 <span className="bg-white/90 px-3 py-1 rounded-full text-xs font-medium shadow-sm text-gray-600 border border-gray-200">
-                                    Approximate Location (No explicit coordinates)
+                                    Approximate Location
                                 </span>
                             </div>
                         )}

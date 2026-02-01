@@ -149,14 +149,39 @@ const columns: ColumnDef<Unit>[] = [
     {
         id: "actions",
         header: () => <div>Action</div>,
-        cell: () => (
+        cell: ({ row }) => (
             <div className="flex items-center gap-1">
-                <Button variant="outline" size="sm" className="h-7 w-7 p-0 text-brand border-brand hover:bg-brand-light">
-                    <Eye className="h-3 w-3" />
-                </Button>
-                <Button variant="outline" size="sm" className="h-7 w-7 p-0 text-brand border-brand hover:bg-brand-light">
-                    <SquarePen className="h-3 w-3" />
-                </Button>
+                <TooltipProvider>
+                    <Tooltip>
+                        <TooltipTrigger asChild>
+                            {/* Use a Link or Button that navigates */}
+                            <Button
+                                variant="outline"
+                                size="sm"
+                                className="h-7 w-7 p-0 text-brand border-brand hover:bg-brand-light"
+                                onClick={() => window.location.href = `/dashboard/registry/${row.original.id}`}
+                            >
+                                <Eye className="h-3 w-3" />
+                            </Button>
+                        </TooltipTrigger>
+                        <TooltipContent>
+                            <p>View Details</p>
+                        </TooltipContent>
+                    </Tooltip>
+                </TooltipProvider>
+
+                <TooltipProvider>
+                    <Tooltip>
+                        <TooltipTrigger asChild>
+                            <Button variant="outline" size="sm" className="h-7 w-7 p-0 text-gray-500 border-gray-200 hover:bg-gray-100">
+                                <SquarePen className="h-3 w-3" />
+                            </Button>
+                        </TooltipTrigger>
+                        <TooltipContent>
+                            <p>Edit Property</p>
+                        </TooltipContent>
+                    </Tooltip>
+                </TooltipProvider>
             </div>
         ),
     },
@@ -399,11 +424,7 @@ export default function PropertyRegistryPage() {
                                     <TableRow
                                         key={row.id}
                                         data-state={row.getIsSelected() && "selected"}
-                                        className="hover:bg-gray-50 border-gray-100 even:bg-gray-100/60 transition-colors data-[state=selected]:bg-gray-100 cursor-pointer"
-                                        onClick={(e) => {
-                                            if ((e.target as HTMLElement).closest('[role="checkbox"], button')) return;
-                                            router.push(`/dashboard/registry/${row.original.id}`);
-                                        }}
+                                        className="hover:bg-gray-50 border-gray-100 even:bg-gray-100/60 transition-colors data-[state=selected]:bg-gray-100"
                                     >
                                         {row.getVisibleCells().map((cell) => (
                                             <TableCell key={cell.id} className="py-3 text-sm">
