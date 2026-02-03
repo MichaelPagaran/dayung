@@ -18,7 +18,7 @@ import {
 const navigation = [
     { name: "Dashboard", href: "/dashboard", icon: "/icons/dashboard.svg", disabled: true },
     { name: "Property Registry", href: "/dashboard/registry", icon: "/icons/house.svg", disabled: false },
-    { name: "Facilities", href: "/dashboard/facilities", icon: null, lucideIcon: Warehouse, disabled: true },
+    { name: "Facilities", href: "/dashboard/facilities", icon: null, lucideIcon: Warehouse, disabled: false },
     { name: "Billing & Payments", href: "/dashboard/billing", icon: "/icons/payment.svg", disabled: true },
     { name: "Expenses & Budget", href: "/dashboard/ledger", icon: "/icons/wallet.svg", disabled: true },
 ];

@@ -8,7 +8,6 @@ import {
     Edit,
     Archive,
     Home,
-    User,
     MapPin,
     CreditCard,
     Wallet,
@@ -112,94 +111,139 @@ export default function PropertyDetailPage() {
                 <div className="h-1 bg-gradient-to-r from-brand to-cyan-400 rounded-full" />
             </div>
 
-            {/* Top Row: Unit Info, Owner, & Map */}
-            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+            {/* Main 2-column grid - Map spans both rows on right */}
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
 
-                {/* Card 1: Unit Details */}
-                <Card className="shadow-sm border-gray-200">
-                    <CardHeader className="pb-4 border-b border-gray-100 bg-gray-50/50">
-                        <div className="flex items-center justify-between">
-                            <CardTitle className="text-base font-semibold text-gray-900">
-                                Property Information
-                            </CardTitle>
-                            <span className="text-xs font-mono text-gray-500 bg-white px-2 py-1 rounded border border-gray-200">
-                                {unit.unit_identifier}
-                            </span>
-                        </div>
-                    </CardHeader>
-                    <CardContent className="pt-6 space-y-5">
-                        <div>
-                            <p className="text-sm text-gray-500 mb-1">Full Location</p>
-                            <p className="font-medium text-gray-900 text-lg">
-                                {unit.location_name || "Main Street"}
-                            </p>
-                            <p className="text-gray-600 text-sm">
-                                Block {unit.section_identifier}, Lot {unit.unit_identifier}
-                            </p>
-                        </div>
+                {/* Left Column: Stacked content */}
+                <div className="lg:col-span-2 space-y-6">
 
-                        <div className="grid grid-cols-2 gap-4">
-                            <div>
-                                <p className="text-sm text-gray-500 mb-1">Type</p>
-                                <p className="font-medium text-gray-900 capitalize">{unit.category.toLowerCase()}</p>
-                            </div>
-                            <div>
-                                <p className="text-sm text-gray-500 mb-1">Occupancy</p>
+                    {/* Card 1: Combined Unit + Owner Info */}
+                    <Card className="shadow-sm border-gray-200">
+                        <CardHeader className="pb-4 border-b border-gray-100 bg-gray-50/50">
+                            <div className="flex items-center justify-between">
+                                <CardTitle className="text-lg font-semibold text-gray-900">
+                                    Block {unit.section_identifier} Lot {unit.unit_identifier}
+                                </CardTitle>
                                 <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium 
-                                    ${unit.occupancy_status === 'INHABITED' ? 'bg-green-100 text-green-800' :
-                                        unit.occupancy_status === 'VACANT' ? 'bg-yellow-100 text-yellow-800' : 'bg-gray-100 text-gray-800'}`}>
-                                    {unit.occupancy_status.replace('_', ' ')}
+                                    ${unit.membership_status === 'GOOD_STANDING' ? 'bg-green-100 text-green-800' :
+                                        unit.membership_status === 'DELINQUENT' ? 'bg-red-100 text-red-800' : 'bg-gray-100 text-gray-600'}`}>
+                                    {unit.membership_status.replace('_', ' ')}
                                 </span>
                             </div>
-                        </div>
-                    </CardContent>
-                </Card>
+                        </CardHeader>
+                        <CardContent className="pt-6">
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                {/* Unit Information */}
+                                <div className="space-y-4">
+                                    <h4 className="text-sm font-medium text-gray-500 uppercase tracking-wide">Unit Information</h4>
+                                    <div className="space-y-3">
+                                        <div>
+                                            <p className="text-xs text-gray-400">Unit ID</p>
+                                            <p className="text-sm font-medium text-gray-900 font-mono">{unit.unit_identifier}</p>
+                                        </div>
+                                        <div>
+                                            <p className="text-xs text-gray-400">Location</p>
+                                            <p className="text-sm font-medium text-gray-900">{unit.location_name || "Block Tower A, Floor 1"}</p>
+                                        </div>
+                                        <div>
+                                            <p className="text-xs text-gray-400">Type</p>
+                                            <p className="text-sm font-medium text-gray-900 capitalize">{unit.category.toLowerCase()}</p>
+                                        </div>
+                                        <div>
+                                            <p className="text-xs text-gray-400">Occupancy Status</p>
+                                            <p className="text-sm font-medium text-gray-900">{unit.occupancy_status.replace('_', ' ')}</p>
+                                        </div>
+                                    </div>
+                                </div>
 
-                {/* Card 2: Owner Details */}
-                <Card className="shadow-sm border-gray-200">
-                    <CardHeader className="pb-4 border-b border-gray-100 bg-gray-50/50">
-                        <CardTitle className="text-base font-semibold text-gray-900 flex items-center gap-2">
-                            <User className="h-4 w-4 text-gray-500" /> Owner Details
-                        </CardTitle>
-                    </CardHeader>
-                    <CardContent className="pt-6 space-y-5">
-                        <div className="flex items-start justify-between">
-                            <div>
-                                <p className="text-sm text-gray-500 mb-1">Name</p>
-                                <p className="font-medium text-gray-900 text-lg">{unit.owner_name || "No Owner Linked"}</p>
+                                {/* Owner / Resident Information */}
+                                <div className="space-y-4">
+                                    <h4 className="text-sm font-medium text-gray-500 uppercase tracking-wide">Owner / Resident Information</h4>
+                                    <div className="space-y-3">
+                                        <div>
+                                            <p className="text-xs text-gray-400">Name</p>
+                                            <p className="text-sm font-medium text-gray-900">{unit.owner_name || "No Owner Linked"}</p>
+                                        </div>
+                                        <div>
+                                            <p className="text-xs text-gray-400">Member Status</p>
+                                            <p className="text-sm font-medium text-gray-900">{unit.membership_status.replace('_', ' ')}</p>
+                                        </div>
+                                        <div>
+                                            <p className="text-xs text-gray-400">Email</p>
+                                            <p className="text-sm font-medium text-brand">
+                                                {unit.owner_email ? (
+                                                    <a href={`mailto:${unit.owner_email}`} className="hover:underline">
+                                                        ✉ {unit.owner_email}
+                                                    </a>
+                                                ) : "—"}
+                                            </p>
+                                        </div>
+                                        <div>
+                                            <p className="text-xs text-gray-400">Phone</p>
+                                            <p className="text-sm font-medium text-gray-900">
+                                                {unit.owner_phone ? `📞 ${unit.owner_phone}` : "—"}
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
-                            <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium 
-                                ${unit.membership_status === 'GOOD_STANDING' ? 'bg-green-100 text-green-800' :
-                                    unit.membership_status === 'DELINQUENT' ? 'bg-red-100 text-red-800' : 'bg-gray-100 text-gray-600'}`}>
-                                {unit.membership_status.replace('_', ' ')}
-                            </span>
-                        </div>
+                        </CardContent>
+                    </Card>
 
-                        <div className="space-y-3 pt-2">
-                            <div className="flex items-center gap-3 text-sm">
-                                <span className="text-gray-500 w-16">Email:</span>
-                                <span className="text-gray-900 font-medium truncate">{unit.owner_email || "—"}</span>
-                            </div>
-                            <div className="flex items-center gap-3 text-sm">
-                                <span className="text-gray-500 w-16">Phone:</span>
-                                <span className="text-gray-900 font-medium">{unit.owner_phone || "—"}</span>
-                            </div>
-                            <div className="flex items-center gap-3 text-sm">
-                                <span className="text-gray-500 w-16">Resident:</span>
-                                <span className="text-gray-900 font-medium">{unit.resident_name || "Same as owner"}</span>
-                            </div>
+                    {/* Financial Summary */}
+                    <div>
+                        <div className="flex items-center justify-between mb-4">
+                            <h3 className="text-lg font-semibold text-gray-900">Financial Summary</h3>
+                            <Button variant="link" className="text-brand h-auto p-0 hover:text-brand-dark">View More</Button>
                         </div>
-                    </CardContent>
-                </Card>
+                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                            <Card className="border-gray-200 shadow-sm bg-white">
+                                <CardContent className="p-5 flex items-start justify-between">
+                                    <div>
+                                        <p className="text-sm font-medium text-gray-500 mb-1">Current Balance</p>
+                                        <h2 className="text-2xl font-bold text-gray-900">₱0.00</h2>
+                                    </div>
+                                    <div className="p-2 bg-gray-100 rounded-full text-gray-500">
+                                        <Home className="h-5 w-5" />
+                                    </div>
+                                </CardContent>
+                            </Card>
 
-                {/* Card 3: Map Card */}
-                <Card className="shadow-sm border-gray-200 overflow-hidden flex flex-col min-h-[300px] xl:min-h-0">
-                    <CardHeader className="pb-3 border-b border-gray-100 bg-gray-50/50">
+                            <Card className="border-gray-200 shadow-sm bg-white">
+                                <CardContent className="p-5 flex items-start justify-between">
+                                    <div>
+                                        <p className="text-sm font-medium text-gray-500 mb-1">Outstanding Dues</p>
+                                        <h2 className="text-2xl font-bold text-gray-900">₱0.00</h2>
+                                    </div>
+                                    <div className="p-2 bg-gray-100 rounded-full text-gray-500">
+                                        <CreditCard className="h-5 w-5" />
+                                    </div>
+                                </CardContent>
+                            </Card>
+
+                            <Card className="border-gray-200 shadow-sm bg-white">
+                                <CardContent className="p-5 flex items-start justify-between">
+                                    <div>
+                                        <p className="text-sm font-medium text-gray-500 mb-1">Payment Status</p>
+                                        <h2 className="text-xl font-bold text-green-600">Up to date</h2>
+                                    </div>
+                                    <div className="p-2 bg-gray-100 rounded-full text-gray-500">
+                                        <Wallet className="h-5 w-5" />
+                                    </div>
+                                </CardContent>
+                            </Card>
+                        </div>
+                    </div>
+                </div>
+
+                {/* Right Column: Map (spans full height of left content) */}
+                <Card className="shadow-sm border-gray-200 overflow-hidden flex flex-col min-h-[400px] lg:min-h-0">
+                    <CardHeader className="pb-3 border-b border-gray-100 bg-gray-50/50 flex-shrink-0">
                         <CardTitle className="text-base font-medium flex items-center gap-2">
                             <MapPin className="h-4 w-4 text-gray-500" /> Residence Map
                         </CardTitle>
                     </CardHeader>
-                    <div className="flex-1 relative bg-white">
+                    <div className="flex-1 relative bg-white min-h-[300px]">
                         <MapView
                             center={mapCenter}
                             zoom={18}
@@ -220,51 +264,6 @@ export default function PropertyDetailPage() {
                         )}
                     </div>
                 </Card>
-            </div>
-
-            {/* Financial Summary */}
-            <div>
-                <div className="flex items-center justify-between mb-4">
-                    <h3 className="text-lg font-semibold text-gray-900">Financial Summary</h3>
-                    <Button variant="link" className="text-brand h-auto p-0 hover:text-brand-dark">View More</Button>
-                </div>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <Card className="border-gray-200 shadow-sm bg-white">
-                        <CardContent className="p-5 flex items-start justify-between">
-                            <div>
-                                <p className="text-sm font-medium text-gray-500 mb-1">Current Balance</p>
-                                <h2 className="text-2xl font-bold text-gray-900">₱0.00</h2>
-                            </div>
-                            <div className="p-2 bg-gray-100 rounded-full text-gray-500">
-                                <Home className="h-5 w-5" />
-                            </div>
-                        </CardContent>
-                    </Card>
-
-                    <Card className="border-gray-200 shadow-sm bg-white">
-                        <CardContent className="p-5 flex items-start justify-between">
-                            <div>
-                                <p className="text-sm font-medium text-gray-500 mb-1">Outstanding Dues</p>
-                                <h2 className="text-2xl font-bold text-gray-900">₱0.00</h2>
-                            </div>
-                            <div className="p-2 bg-gray-100 rounded-full text-gray-500">
-                                <CreditCard className="h-5 w-5" />
-                            </div>
-                        </CardContent>
-                    </Card>
-
-                    <Card className="border-gray-200 shadow-sm bg-white">
-                        <CardContent className="p-5 flex items-start justify-between">
-                            <div>
-                                <p className="text-sm font-medium text-gray-500 mb-1">Payment Status</p>
-                                <h2 className="text-xl font-bold text-green-600">Up to date</h2>
-                            </div>
-                            <div className="p-2 bg-gray-100 rounded-full text-gray-500">
-                                <Wallet className="h-5 w-5" />
-                            </div>
-                        </CardContent>
-                    </Card>
-                </div>
             </div>
 
             {/* Payment History Table Placeholder */}
