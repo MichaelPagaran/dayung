@@ -104,4 +104,69 @@ export const facilitiesApi = {
         const response = await api.post<{ deleted: number }>('/assets/bulk-delete', { asset_ids: ids });
         return response.data;
     },
+
+    /**
+     * Get transactions for a specific facility.
+     */
+    getTransactions: async (id: string, type?: 'INCOME' | 'EXPENSE'): Promise<FacilityTransaction[]> => {
+        const params = new URLSearchParams();
+        if (type) params.append('transaction_type', type);
+        const queryString = params.toString();
+        const url = queryString ? `/assets/${id}/transactions?${queryString}` : `/assets/${id}/transactions`;
+        const response = await api.get<FacilityTransaction[]>(url);
+        return response.data;
+    },
+
+    /**
+     * Get availability slots for a facility on a specific date range.
+     */
+    getAvailability: async (id: string, startDate: string, endDate: string): Promise<AvailabilitySlot[]> => {
+        const response = await api.get<AvailabilitySlot[]>(
+            `/assets/${id}/availability?start_date=${startDate}&end_date=${endDate}`
+        );
+        return response.data;
+    },
+
+    /**
+     * Get reservation config (includes operating hours).
+     */
+    getConfig: async (): Promise<ReservationConfig> => {
+        const response = await api.get<ReservationConfig>('/assets/config');
+        return response.data;
+    },
 };
+
+// =============================================================================
+// Additional Types
+// =============================================================================
+
+export interface FacilityTransaction {
+    id: string;
+    transaction_type: 'INCOME' | 'EXPENSE';
+    amount: number;
+    category: string;
+    description: string;
+    payment_method: string;
+    transaction_date: string;
+    reservation_id: string | null;
+    created_at: string;
+}
+
+export interface AvailabilitySlot {
+    date: string;
+    start_time: string;
+    end_time: string;
+    is_available: boolean;
+    reservation_id: string | null;
+}
+
+export interface ReservationConfig {
+    id: string;
+    org_id: string;
+    expiration_hours: number;
+    allow_same_day_booking: boolean;
+    min_advance_hours: number;
+    operating_hours_start: string;
+    operating_hours_end: string;
+    is_active: boolean;
+}
