@@ -13,82 +13,6 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { useDebounce } from "@/hooks/use-debounce";
 import { facilitiesApi, FacilityWithAnalytics } from "@/lib/services/facilities";
 
-// Mock data for development (until backend is connected)
-const MOCK_FACILITIES: FacilityWithAnalytics[] = [
-    {
-        id: "1",
-        name: "Swimming Pool",
-        asset_type: "REVENUE",
-        image_url: "https://images.unsplash.com/photo-1576013551627-0cc20b96c2a7?w=800",
-        rental_rate: 200,
-        capacity: 50,
-        income_this_month: 5000,
-        expenses_this_month: 500,
-        net_income_this_month: 4500,
-        reservation_count_this_month: 4,
-    },
-    {
-        id: "2",
-        name: "Pickleball Court",
-        asset_type: "REVENUE",
-        image_url: "https://images.unsplash.com/photo-1554068865-24cecd4e34b8?w=800",
-        rental_rate: 200,
-        capacity: 8,
-        income_this_month: 3000,
-        expenses_this_month: 200,
-        net_income_this_month: 2800,
-        reservation_count_this_month: 4,
-    },
-    {
-        id: "3",
-        name: "Basketball Court",
-        asset_type: "REVENUE",
-        image_url: "https://images.unsplash.com/photo-1546519638-68e109498ffc?w=800",
-        rental_rate: 200,
-        capacity: 20,
-        income_this_month: 4000,
-        expenses_this_month: 300,
-        net_income_this_month: 3700,
-        reservation_count_this_month: 4,
-    },
-    {
-        id: "4",
-        name: "Function Hall",
-        asset_type: "REVENUE",
-        image_url: "https://images.unsplash.com/photo-1519167758481-83f550bb49b3?w=800",
-        rental_rate: 1000,
-        capacity: 150,
-        income_this_month: 8000,
-        expenses_this_month: 1000,
-        net_income_this_month: 7000,
-        reservation_count_this_month: 4,
-    },
-    {
-        id: "5",
-        name: "Tennis Court",
-        asset_type: "REVENUE",
-        image_url: "https://images.unsplash.com/photo-1622279457486-62dcc4a431d6?w=800",
-        rental_rate: 200,
-        capacity: 4,
-        income_this_month: 2500,
-        expenses_this_month: 150,
-        net_income_this_month: 2350,
-        reservation_count_this_month: 4,
-    },
-    {
-        id: "6",
-        name: "Volleyball Court",
-        asset_type: "REVENUE",
-        image_url: "https://images.unsplash.com/photo-1612872087720-bb876e2e67d1?w=800",
-        rental_rate: 150,
-        capacity: 12,
-        income_this_month: 2000,
-        expenses_this_month: 100,
-        net_income_this_month: 1900,
-        reservation_count_this_month: 4,
-    },
-];
-
 export default function FacilitiesPage() {
     const router = useRouter();
 
@@ -114,15 +38,8 @@ export default function FacilitiesPage() {
             setIsLoading(true);
             setError(null);
             try {
-                // Try to fetch from API, fallback to mock data
-                try {
-                    const data = await facilitiesApi.getFacilitiesWithAnalytics();
-                    setFacilities(data);
-                } catch {
-                    // Use mock data if API fails
-                    console.warn("Using mock data - API not available");
-                    setFacilities(MOCK_FACILITIES);
-                }
+                const data = await facilitiesApi.getFacilitiesWithAnalytics();
+                setFacilities(data);
             } catch (err) {
                 console.error("Failed to fetch facilities:", err);
                 setError("Failed to load facilities. Please try again.");
