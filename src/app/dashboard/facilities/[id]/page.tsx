@@ -768,6 +768,12 @@ export default function FacilityDetailPage() {
                     <ScheduleTabContent
                         reservations={reservations}
                         onCreateClick={() => setShowReservationDialog(true)}
+                        onRefresh={async () => {
+                            try {
+                                const data = await reservationsApi.getReservations({ asset_id: id });
+                                setReservations(data);
+                            } catch { /* ignore */ }
+                        }}
                     />
                 </TabsContent>
             </Tabs>
@@ -794,16 +800,28 @@ export default function FacilityDetailPage() {
 function ScheduleTabContent({
     reservations,
     onCreateClick,
+    onRefresh,
 }: {
     reservations: Reservation[];
     onCreateClick: () => void;
+    onRefresh: () => void;
 }) {
+    const [selectedReservation, setSelectedReservation] = React.useState<Reservation | null>(null);
+    const [showDetailDialog, setShowDetailDialog] = React.useState(false);
+    const [showPaymentDialog, setShowPaymentDialog] = React.useState(false);
+    const [showCancelDialog, setShowCancelDialog] = React.useState(false);
+
     const table = useReactTable({
         data: reservations,
         columns: reservationColumns,
         getCoreRowModel: getCoreRowModel(),
         getRowId: (row) => row.id,
     });
+
+    const handleRowClick = (reservation: Reservation) => {
+        setSelectedReservation(reservation);
+        setShowDetailDialog(true);
+    };
 
     return (
         <div className="space-y-4">
@@ -850,7 +868,11 @@ function ScheduleTabContent({
                         </TableHeader>
                         <TableBody>
                             {table.getRowModel().rows.map((row) => (
-                                <TableRow key={row.id}>
+                                <TableRow
+                                    key={row.id}
+                                    className="cursor-pointer hover:bg-gray-50 transition-colors"
+                                    onClick={() => handleRowClick(row.original)}
+                                >
                                     {row.getVisibleCells().map((cell) => (
                                         <TableCell key={cell.id}>
                                             {flexRender(
@@ -865,6 +887,388 @@ function ScheduleTabContent({
                     </Table>
                 </Card>
             )}
+
+            {/* Reservation Detail Dialog */}
+            {selectedReservation && (
+                <ReservationDetailDialog
+                    reservation={selectedReservation}
+                    open={showDetailDialog}
+                    onOpenChange={(open) => {
+                        setShowDetailDialog(open);
+                        if (!open) setSelectedReservation(null);
+                    }}
+                    onRecordPayment={() => {
+                        setShowDetailDialog(false);
+                        setShowPaymentDialog(true);
+                    }}
+                    onCancel={() => {
+                        setShowDetailDialog(false);
+                        setShowCancelDialog(true);
+                    }}
+                    onConfirmReceipt={async () => {
+                        try {
+                            await reservationsApi.confirmReceipt(selectedReservation.id);
+                            setShowDetailDialog(false);
+                            onRefresh();
+                        } catch (err) {
+                            console.error("Failed to confirm receipt:", err);
+                            alert("Failed to confirm receipt.");
+                        }
+                    }}
+                />
+            )}
+
+            {/* Record Payment Dialog */}
+            {selectedReservation && (
+                <RecordPaymentDialog
+                    reservation={selectedReservation}
+                    open={showPaymentDialog}
+                    onOpenChange={setShowPaymentDialog}
+                    onSuccess={() => {
+                        setShowPaymentDialog(false);
+                        setSelectedReservation(null);
+                        onRefresh();
+                    }}
+                />
+            )}
+
+            {/* Cancel Reservation Dialog */}
+            {selectedReservation && (
+                <CancelReservationDialog
+                    reservation={selectedReservation}
+                    open={showCancelDialog}
+                    onOpenChange={setShowCancelDialog}
+                    onSuccess={() => {
+                        setShowCancelDialog(false);
+                        setSelectedReservation(null);
+                        onRefresh();
+                    }}
+                />
+            )}
         </div>
     );
 }
+
+// =============================================================================
+// Reservation Detail Dialog
+// =============================================================================
+function ReservationDetailDialog({
+    reservation,
+    open,
+    onOpenChange,
+    onRecordPayment,
+    onCancel,
+    onConfirmReceipt,
+}: {
+    reservation: Reservation;
+    open: boolean;
+    onOpenChange: (open: boolean) => void;
+    onRecordPayment: () => void;
+    onCancel: () => void;
+    onConfirmReceipt: () => void;
+}) {
+    const start = new Date(reservation.start_datetime);
+    const end = new Date(reservation.end_datetime);
+    const isPendingPayment = reservation.status === "PENDING_PAYMENT";
+    const isForReview = reservation.status === "FOR_REVIEW";
+    const isConfirmed = reservation.status === "CONFIRMED";
+    const isViewOnly = ["COMPLETED", "CANCELLED", "EXPIRED"].includes(reservation.status);
+
+    return (
+        <Dialog open={open} onOpenChange={onOpenChange}>
+            <DialogContent className="sm:max-w-[520px]">
+                <DialogHeader>
+                    <DialogTitle className="flex items-center gap-3">
+                        Reservation Details
+                        <Badge className={RESERVATION_STATUS_STYLES[reservation.status] || "bg-gray-100"}>
+                            {statusLabel(reservation.status)}
+                        </Badge>
+                    </DialogTitle>
+                    <DialogDescription>
+                        {reservation.asset_name}
+                    </DialogDescription>
+                </DialogHeader>
+
+                <div className="space-y-4">
+                    {/* Booking Info */}
+                    <div className="grid grid-cols-2 gap-x-4 gap-y-2 text-sm">
+                        <div>
+                            <span className="text-gray-500">Reserved By</span>
+                            <p className="font-medium text-gray-900">{reservation.reserved_by_name}</p>
+                        </div>
+                        <div>
+                            <span className="text-gray-500">Date</span>
+                            <p className="font-medium text-gray-900">
+                                {start.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}
+                            </p>
+                        </div>
+                        <div>
+                            <span className="text-gray-500">Time</span>
+                            <p className="font-medium text-gray-900">
+                                {start.toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" })}
+                                {" – "}
+                                {end.toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" })}
+                            </p>
+                        </div>
+                        <div>
+                            <span className="text-gray-500">Duration</span>
+                            <p className="font-medium text-gray-900">{reservation.hours} hour(s)</p>
+                        </div>
+                    </div>
+
+                    {/* Divider */}
+                    <div className="border-t border-gray-100" />
+
+                    {/* Payment Breakdown */}
+                    <div className="space-y-2">
+                        <h4 className="text-sm font-semibold text-gray-800">Payment Breakdown</h4>
+                        <div className="space-y-1 text-sm">
+                            <div className="flex justify-between">
+                                <span className="text-gray-500">₱{reservation.hourly_rate.toLocaleString()} × {reservation.hours} hrs</span>
+                                <span className="text-gray-900">₱ {reservation.subtotal.toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
+                            </div>
+                            {reservation.discount_amount > 0 && (
+                                <div className="flex justify-between">
+                                    <span className="text-emerald-600">Discount</span>
+                                    <span className="text-emerald-600">-₱ {reservation.discount_amount.toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
+                                </div>
+                            )}
+                            {reservation.deposit_amount > 0 && (
+                                <div className="flex justify-between">
+                                    <span className="text-gray-500">Deposit</span>
+                                    <span className="text-gray-900">₱ {reservation.deposit_amount.toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
+                                </div>
+                            )}
+                            <div className="flex justify-between pt-1 border-t border-dashed border-gray-200">
+                                <span className="font-semibold text-gray-900">Total</span>
+                                <span className="font-bold text-gray-900">₱ {reservation.total_amount.toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Payment Status */}
+                    <div className="flex items-center justify-between p-3 rounded-lg bg-gray-50">
+                        <div className="flex items-center gap-3">
+                            <Badge className={PAYMENT_STATUS_STYLES[reservation.payment_status] || "bg-gray-100"}>
+                                {statusLabel(reservation.payment_status)}
+                            </Badge>
+                            <span className="text-sm text-gray-500">
+                                Paid: ₱ {reservation.amount_paid.toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                            </span>
+                        </div>
+                        {reservation.balance_due > 0 && (
+                            <span className="text-sm font-semibold text-red-600">
+                                Balance: ₱ {reservation.balance_due.toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                            </span>
+                        )}
+                    </div>
+                </div>
+
+                {/* Actions */}
+                {!isViewOnly && (
+                    <DialogFooter className="flex flex-col gap-2 sm:flex-row">
+                        <Button
+                            variant="outline"
+                            className="text-red-600 border-red-200 hover:bg-red-50"
+                            onClick={onCancel}
+                        >
+                            Cancel Reservation
+                        </Button>
+                        <div className="flex-1" />
+                        {isPendingPayment && (
+                            <Button
+                                className="bg-primary-500 hover:bg-primary-600 gap-2"
+                                onClick={onRecordPayment}
+                            >
+                                <Banknote className="h-4 w-4" /> Record Payment
+                            </Button>
+                        )}
+                        {isForReview && (
+                            <Button
+                                className="bg-emerald-600 hover:bg-emerald-700 gap-2"
+                                onClick={onConfirmReceipt}
+                            >
+                                Confirm Receipt
+                            </Button>
+                        )}
+                    </DialogFooter>
+                )}
+            </DialogContent>
+        </Dialog>
+    );
+}
+
+// =============================================================================
+// Record Payment Dialog
+// =============================================================================
+function RecordPaymentDialog({
+    reservation,
+    open,
+    onOpenChange,
+    onSuccess,
+}: {
+    reservation: Reservation;
+    open: boolean;
+    onOpenChange: (open: boolean) => void;
+    onSuccess: () => void;
+}) {
+    const [amount, setAmount] = React.useState(reservation.balance_due.toString());
+    const [refNumber, setRefNumber] = React.useState("");
+    const [paymentMethod, setPaymentMethod] = React.useState("CASH");
+    const [isSubmitting, setIsSubmitting] = React.useState(false);
+    const [error, setError] = React.useState<string | null>(null);
+
+    React.useEffect(() => {
+        setAmount(reservation.balance_due.toString());
+        setRefNumber("");
+        setPaymentMethod("CASH");
+        setError(null);
+    }, [reservation]);
+
+    const handleSubmit = async (e: React.FormEvent) => {
+        e.preventDefault();
+        if (!amount || parseFloat(amount) <= 0) {
+            setError("Amount must be greater than 0.");
+            return;
+        }
+        setIsSubmitting(true);
+        setError(null);
+        try {
+            await reservationsApi.recordPayment(reservation.id, {
+                amount: parseFloat(amount),
+                reference_number: refNumber || undefined,
+                payment_method: paymentMethod,
+            });
+            onSuccess();
+        } catch (err) {
+            console.error("Failed to record payment:", err);
+            setError("Failed to record payment. Please try again.");
+        } finally {
+            setIsSubmitting(false);
+        }
+    };
+
+    return (
+        <Dialog open={open} onOpenChange={onOpenChange}>
+            <DialogContent className="sm:max-w-[420px]">
+                <DialogHeader>
+                    <DialogTitle>Record Payment</DialogTitle>
+                    <DialogDescription>
+                        Record a payment for {reservation.asset_name}.
+                        Balance due: ₱ {reservation.balance_due.toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                    </DialogDescription>
+                </DialogHeader>
+                <form onSubmit={handleSubmit} className="space-y-4">
+                    <div className="space-y-1">
+                        <label className="text-sm font-medium text-gray-700">Amount (₱) *</label>
+                        <Input
+                            type="number"
+                            min="0"
+                            step="0.01"
+                            value={amount}
+                            onChange={(e) => setAmount(e.target.value)}
+                        />
+                    </div>
+                    <div className="space-y-1">
+                        <label className="text-sm font-medium text-gray-700">Reference Number</label>
+                        <Input
+                            placeholder="e.g. OR-12345"
+                            value={refNumber}
+                            onChange={(e) => setRefNumber(e.target.value)}
+                        />
+                    </div>
+                    <div className="space-y-1">
+                        <label className="text-sm font-medium text-gray-700">Payment Method</label>
+                        <select
+                            className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background"
+                            value={paymentMethod}
+                            onChange={(e) => setPaymentMethod(e.target.value)}
+                        >
+                            <option value="CASH">Cash</option>
+                            <option value="BANK_TRANSFER">Bank Transfer</option>
+                            <option value="CHECK">Check</option>
+                            <option value="GCASH">GCash</option>
+                        </select>
+                    </div>
+                    {error && <p className="text-sm text-red-600">{error}</p>}
+                    <DialogFooter>
+                        <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>Cancel</Button>
+                        <Button type="submit" className="bg-primary-500 hover:bg-primary-600" disabled={isSubmitting}>
+                            {isSubmitting && <Loader2 className="h-4 w-4 animate-spin mr-2" />}
+                            Record Payment
+                        </Button>
+                    </DialogFooter>
+                </form>
+            </DialogContent>
+        </Dialog>
+    );
+}
+
+// =============================================================================
+// Cancel Reservation Dialog
+// =============================================================================
+function CancelReservationDialog({
+    reservation,
+    open,
+    onOpenChange,
+    onSuccess,
+}: {
+    reservation: Reservation;
+    open: boolean;
+    onOpenChange: (open: boolean) => void;
+    onSuccess: () => void;
+}) {
+    const [reason, setReason] = React.useState("");
+    const [isSubmitting, setIsSubmitting] = React.useState(false);
+    const [error, setError] = React.useState<string | null>(null);
+
+    const handleSubmit = async (e: React.FormEvent) => {
+        e.preventDefault();
+        setIsSubmitting(true);
+        setError(null);
+        try {
+            await reservationsApi.cancelReservation(reservation.id, { reason });
+            onSuccess();
+        } catch (err) {
+            console.error("Failed to cancel reservation:", err);
+            setError("Failed to cancel. Please try again.");
+        } finally {
+            setIsSubmitting(false);
+        }
+    };
+
+    return (
+        <Dialog open={open} onOpenChange={onOpenChange}>
+            <DialogContent className="sm:max-w-[420px]">
+                <DialogHeader>
+                    <DialogTitle className="text-red-600">Cancel Reservation</DialogTitle>
+                    <DialogDescription>
+                        This will cancel the reservation for {reservation.asset_name} on{" "}
+                        {new Date(reservation.start_datetime).toLocaleDateString("en-US", { month: "short", day: "numeric" })}.
+                        This action cannot be undone.
+                    </DialogDescription>
+                </DialogHeader>
+                <form onSubmit={handleSubmit} className="space-y-4">
+                    <div className="space-y-1">
+                        <label className="text-sm font-medium text-gray-700">Reason (optional)</label>
+                        <textarea
+                            className="flex min-h-[80px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground"
+                            placeholder="Why is this reservation being cancelled?"
+                            value={reason}
+                            onChange={(e) => setReason(e.target.value)}
+                        />
+                    </div>
+                    {error && <p className="text-sm text-red-600">{error}</p>}
+                    <DialogFooter>
+                        <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>Keep Reservation</Button>
+                        <Button type="submit" className="bg-red-600 hover:bg-red-700 text-white" disabled={isSubmitting}>
+                            {isSubmitting && <Loader2 className="h-4 w-4 animate-spin mr-2" />}
+                            Confirm Cancellation
+                        </Button>
+                    </DialogFooter>
+                </form>
+            </DialogContent>
+        </Dialog>
+    );
+}
+

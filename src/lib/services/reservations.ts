@@ -47,6 +47,16 @@ export interface ReservationPayload {
     apply_discount_ids?: string[];
 }
 
+export interface PaymentPayload {
+    amount: number;
+    reference_number?: string;
+    payment_method?: string;
+}
+
+export interface CancellationPayload {
+    reason?: string;
+}
+
 // =============================================================================
 // API Methods
 // =============================================================================
@@ -97,6 +107,56 @@ export const reservationsApi = {
         );
         return response.data;
     },
+
+    // =========================================================================
+    // Payment & Receipt Workflow
+    // =========================================================================
+
+    /**
+     * Record payment for a reservation.
+     */
+    recordPayment: async (reservationId: string, data: PaymentPayload): Promise<Reservation> => {
+        const response = await api.post<Reservation>(
+            `/assets/reservations/${reservationId}/payment`,
+            data
+        );
+        return response.data;
+    },
+
+    /**
+     * Submit a receipt (proof of payment) for a reservation.
+     */
+    submitReceipt: async (reservationId: string, file: File): Promise<Reservation> => {
+        const formData = new FormData();
+        formData.append('file', file);
+        const response = await api.post<Reservation>(
+            `/assets/reservations/${reservationId}/receipt`,
+            formData,
+            { headers: { 'Content-Type': 'multipart/form-data' } }
+        );
+        return response.data;
+    },
+
+    /**
+     * Confirm a reservation receipt (staff/admin action).
+     */
+    confirmReceipt: async (reservationId: string): Promise<Reservation> => {
+        const response = await api.post<Reservation>(
+            `/assets/reservations/${reservationId}/confirm-receipt`
+        );
+        return response.data;
+    },
+
+    /**
+     * Cancel a reservation.
+     */
+    cancelReservation: async (reservationId: string, data?: CancellationPayload): Promise<Reservation> => {
+        const response = await api.post<Reservation>(
+            `/assets/reservations/${reservationId}/cancel`,
+            data || { reason: '' }
+        );
+        return response.data;
+    },
 };
 
 // =============================================================================
@@ -110,3 +170,4 @@ export interface AvailabilitySlot {
     reservation_id?: string;
     reserved_by_name?: string;
 }
+
