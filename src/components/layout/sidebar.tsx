@@ -3,7 +3,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import { usePathname, useRouter } from "next/navigation";
-import { LogOut, PanelLeftClose, PanelLeft, Warehouse } from "lucide-react";
+import { LogOut, PanelLeftClose, PanelLeft, Warehouse, Wallet } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/lib/auth-context";
 import { useSidebar } from "./sidebar-context";
@@ -20,7 +20,7 @@ const navigation = [
     { name: "Property Registry", href: "/dashboard/registry", icon: "/icons/house.svg", disabled: false },
     { name: "Facilities", href: "/dashboard/facilities", icon: null, lucideIcon: Warehouse, disabled: false },
     { name: "Billing & Payments", href: "/dashboard/billing", icon: "/icons/payment.svg", disabled: true },
-    { name: "Expenses & Budget", href: "/dashboard/ledger", icon: "/icons/wallet.svg", disabled: true },
+    { name: "Expenses & Budget", href: "/dashboard/ledger", icon: null, lucideIcon: Wallet, disabled: false },
 ];
 
 interface NavIconProps {

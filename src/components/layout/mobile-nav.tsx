@@ -28,7 +28,7 @@ const navigation = [
     { name: "Property Registry", href: "/dashboard/registry", icon: Building2, disabled: false },
     { name: "Facilities", href: "/dashboard/facilities", icon: Warehouse, disabled: true },
     { name: "Billing & Payments", href: "/dashboard/billing", icon: CreditCard, disabled: true },
-    { name: "Expenses & Budget", href: "/dashboard/ledger", icon: Wallet, disabled: true },
+    { name: "Expenses & Budget", href: "/dashboard/ledger", icon: Wallet, disabled: false },
 ];
 
 export function MobileNav() {

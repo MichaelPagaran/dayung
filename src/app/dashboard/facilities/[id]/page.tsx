@@ -4,6 +4,12 @@ import * as React from "react";
 import Image from "next/image";
 import { useParams, useRouter } from "next/navigation";
 import {
+    ColumnDef,
+    flexRender,
+    getCoreRowModel,
+    useReactTable,
+} from "@tanstack/react-table";
+import {
     ArrowLeft,
     Edit,
     Archive,
@@ -21,6 +27,23 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import { Input } from "@/components/ui/input";
+import {
+    Table,
+    TableBody,
+    TableCell,
+    TableHead,
+    TableHeader,
+    TableRow,
+} from "@/components/ui/table";
+import {
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogFooter,
+    DialogHeader,
+    DialogTitle,
+} from "@/components/ui/dialog";
 import {
     facilitiesApi,
     Facility,
@@ -29,7 +52,249 @@ import {
     AvailabilitySlot,
     ReservationConfig,
 } from "@/lib/services/facilities";
+import {
+    reservationsApi,
+    Reservation,
+    ReservationPayload,
+} from "@/lib/services/reservations";
 import { cn } from "@/lib/utils";
+
+// =============================================================================
+// Reservation Status Styles
+// =============================================================================
+const RESERVATION_STATUS_STYLES: Record<string, string> = {
+    PENDING_PAYMENT: "bg-amber-100 text-amber-700",
+    FOR_REVIEW: "bg-blue-100 text-blue-700",
+    CONFIRMED: "bg-emerald-100 text-emerald-700",
+    COMPLETED: "bg-gray-100 text-gray-700",
+    CANCELLED: "bg-red-100 text-red-700",
+    EXPIRED: "bg-gray-100 text-gray-500",
+};
+
+const PAYMENT_STATUS_STYLES: Record<string, string> = {
+    UNPAID: "bg-red-100 text-red-700",
+    PARTIAL: "bg-amber-100 text-amber-700",
+    PAID: "bg-emerald-100 text-emerald-700",
+    REFUNDED: "bg-gray-100 text-gray-600",
+};
+
+const statusLabel = (s: string) =>
+    s.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase()).replace(/\B\w+/g, (c) => c.toLowerCase());
+
+// =============================================================================
+// Reservation Table Columns
+// =============================================================================
+const reservationColumns: ColumnDef<Reservation>[] = [
+    {
+        accessorKey: "start_datetime",
+        header: "Date & Time",
+        cell: ({ row }) => {
+            const start = new Date(row.original.start_datetime);
+            const end = new Date(row.original.end_datetime);
+            return (
+                <div className="text-sm">
+                    <p className="font-medium text-gray-900">
+                        {start.toLocaleDateString("en-US", { month: "short", day: "numeric" })}
+                    </p>
+                    <p className="text-gray-500 text-xs">
+                        {start.toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" })}
+                        {" – "}
+                        {end.toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" })}
+                    </p>
+                </div>
+            );
+        },
+    },
+    {
+        accessorKey: "reserved_by_name",
+        header: "Reserved By",
+        cell: ({ row }) => (
+            <span className="text-sm text-gray-900 font-medium">
+                {row.original.reserved_by_name}
+            </span>
+        ),
+    },
+    {
+        accessorKey: "status",
+        header: "Status",
+        cell: ({ row }) => (
+            <Badge className={RESERVATION_STATUS_STYLES[row.original.status] || "bg-gray-100"}>
+                {statusLabel(row.original.status)}
+            </Badge>
+        ),
+    },
+    {
+        accessorKey: "payment_status",
+        header: "Payment",
+        cell: ({ row }) => (
+            <Badge className={PAYMENT_STATUS_STYLES[row.original.payment_status] || "bg-gray-100"}>
+                {statusLabel(row.original.payment_status)}
+            </Badge>
+        ),
+    },
+    {
+        accessorKey: "total_amount",
+        header: () => <span className="text-right block">Amount</span>,
+        cell: ({ row }) => (
+            <span className="text-sm font-semibold text-gray-900 block text-right whitespace-nowrap">
+                ₱ {row.original.total_amount.toLocaleString(undefined, { minimumFractionDigits: 2 })}
+            </span>
+        ),
+    },
+];
+
+// =============================================================================
+// Create Reservation Dialog
+// =============================================================================
+function CreateReservationDialog({
+    open,
+    onOpenChange,
+    assetId,
+    onSuccess,
+}: {
+    open: boolean;
+    onOpenChange: (open: boolean) => void;
+    assetId: string;
+    onSuccess: () => void;
+}) {
+    const [name, setName] = React.useState("");
+    const [phone, setPhone] = React.useState("");
+    const [purpose, setPurpose] = React.useState("");
+    const [startDate, setStartDate] = React.useState("");
+    const [startTime, setStartTime] = React.useState("10:00");
+    const [endTime, setEndTime] = React.useState("12:00");
+    const [isSubmitting, setIsSubmitting] = React.useState(false);
+    const [error, setError] = React.useState<string | null>(null);
+
+    const resetForm = () => {
+        setName("");
+        setPhone("");
+        setPurpose("");
+        setStartDate("");
+        setStartTime("10:00");
+        setEndTime("12:00");
+        setError(null);
+    };
+
+    const handleSubmit = async (e: React.FormEvent) => {
+        e.preventDefault();
+        if (!name || !startDate || !startTime || !endTime) {
+            setError("Please fill in all required fields.");
+            return;
+        }
+
+        setIsSubmitting(true);
+        setError(null);
+
+        try {
+            const payload: ReservationPayload = {
+                asset_id: assetId,
+                reserved_by_name: name,
+                contact_phone: phone || undefined,
+                purpose: purpose || undefined,
+                start_datetime: `${startDate}T${startTime}:00`,
+                end_datetime: `${startDate}T${endTime}:00`,
+            };
+            await reservationsApi.createReservation(payload);
+            resetForm();
+            onOpenChange(false);
+            onSuccess();
+        } catch (err) {
+            console.error("Failed to create reservation:", err);
+            setError("Failed to create reservation. Please try again.");
+        } finally {
+            setIsSubmitting(false);
+        }
+    };
+
+    return (
+        <Dialog open={open} onOpenChange={onOpenChange}>
+            <DialogContent className="sm:max-w-[480px]">
+                <DialogHeader>
+                    <DialogTitle>Schedule a Reservation</DialogTitle>
+                    <DialogDescription>
+                        Book this facility for a specific date and time.
+                    </DialogDescription>
+                </DialogHeader>
+
+                <form onSubmit={handleSubmit} className="space-y-4">
+                    <div className="space-y-1">
+                        <label className="text-sm font-medium text-gray-700">Name *</label>
+                        <Input
+                            placeholder="Reserved by..."
+                            value={name}
+                            onChange={(e) => setName(e.target.value)}
+                        />
+                    </div>
+
+                    <div className="space-y-1">
+                        <label className="text-sm font-medium text-gray-700">Contact Phone</label>
+                        <Input
+                            placeholder="Phone number"
+                            value={phone}
+                            onChange={(e) => setPhone(e.target.value)}
+                        />
+                    </div>
+
+                    <div className="space-y-1">
+                        <label className="text-sm font-medium text-gray-700">Purpose</label>
+                        <Input
+                            placeholder="What's the reservation for?"
+                            value={purpose}
+                            onChange={(e) => setPurpose(e.target.value)}
+                        />
+                    </div>
+
+                    <div className="space-y-1">
+                        <label className="text-sm font-medium text-gray-700">Date *</label>
+                        <Input
+                            type="date"
+                            value={startDate}
+                            onChange={(e) => setStartDate(e.target.value)}
+                        />
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-4">
+                        <div className="space-y-1">
+                            <label className="text-sm font-medium text-gray-700">Start Time *</label>
+                            <Input
+                                type="time"
+                                value={startTime}
+                                onChange={(e) => setStartTime(e.target.value)}
+                            />
+                        </div>
+                        <div className="space-y-1">
+                            <label className="text-sm font-medium text-gray-700">End Time *</label>
+                            <Input
+                                type="time"
+                                value={endTime}
+                                onChange={(e) => setEndTime(e.target.value)}
+                            />
+                        </div>
+                    </div>
+
+                    {error && (
+                        <p className="text-sm text-red-600">{error}</p>
+                    )}
+
+                    <DialogFooter>
+                        <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
+                            Cancel
+                        </Button>
+                        <Button
+                            type="submit"
+                            className="bg-primary-500 hover:bg-primary-600"
+                            disabled={isSubmitting}
+                        >
+                            {isSubmitting && <Loader2 className="h-4 w-4 animate-spin mr-2" />}
+                            Create Reservation
+                        </Button>
+                    </DialogFooter>
+                </form>
+            </DialogContent>
+        </Dialog>
+    );
+}
 
 
 
@@ -162,8 +427,10 @@ export default function FacilityDetailPage() {
     const [income, setIncome] = React.useState<FacilityTransaction[]>([]);
     const [availability, setAvailability] = React.useState<AvailabilitySlot[]>([]);
     const [config, setConfig] = React.useState<ReservationConfig | null>(null);
+    const [reservations, setReservations] = React.useState<Reservation[]>([]);
     const [isLoading, setIsLoading] = React.useState(true);
     const [error, setError] = React.useState<string | null>(null);
+    const [showReservationDialog, setShowReservationDialog] = React.useState(false);
 
     // Fetch data on mount
     React.useEffect(() => {
@@ -212,6 +479,14 @@ export default function FacilityDetailPage() {
                 } catch {
                     // Availability might not be set up
                     setAvailability([]);
+                }
+
+                // Fetch reservations for this facility
+                try {
+                    const reservationData = await reservationsApi.getReservations({ asset_id: id });
+                    setReservations(reservationData);
+                } catch {
+                    setReservations([]);
                 }
             } catch (err) {
                 console.error("Failed to fetch facility:", err);
@@ -270,7 +545,10 @@ export default function FacilityDetailPage() {
                         </p>
                     </div>
                     <div className="flex items-center gap-3 flex-wrap">
-                        <Button className="gap-2 bg-primary-500 hover:bg-primary-600">
+                        <Button
+                            className="gap-2 bg-primary-500 hover:bg-primary-600"
+                            onClick={() => setShowReservationDialog(true)}
+                        >
                             <Calendar className="h-4 w-4" /> Schedule a Reservation
                         </Button>
                         <Button
@@ -302,11 +580,13 @@ export default function FacilityDetailPage() {
             <Tabs defaultValue="details" className="w-full">
                 <TabsList className="mb-6">
                     <TabsTrigger value="details">Details and Expenses</TabsTrigger>
-                    <TabsTrigger value="schedule" disabled>
+                    <TabsTrigger value="schedule">
                         Schedule
-                        <Badge variant="secondary" className="ml-2 text-xs">
-                            Coming Soon
-                        </Badge>
+                        {reservations.length > 0 && (
+                            <Badge variant="secondary" className="ml-2 text-xs">
+                                {reservations.length}
+                            </Badge>
+                        )}
                     </TabsTrigger>
                 </TabsList>
 
@@ -485,11 +765,106 @@ export default function FacilityDetailPage() {
                 </TabsContent>
 
                 <TabsContent value="schedule">
-                    <div className="flex items-center justify-center min-h-[300px] text-gray-500">
-                        Schedule feature coming soon...
-                    </div>
+                    <ScheduleTabContent
+                        reservations={reservations}
+                        onCreateClick={() => setShowReservationDialog(true)}
+                    />
                 </TabsContent>
             </Tabs>
+
+            {/* Create Reservation Dialog */}
+            <CreateReservationDialog
+                open={showReservationDialog}
+                onOpenChange={setShowReservationDialog}
+                assetId={id}
+                onSuccess={async () => {
+                    try {
+                        const data = await reservationsApi.getReservations({ asset_id: id });
+                        setReservations(data);
+                    } catch { /* ignore */ }
+                }}
+            />
+        </div>
+    );
+}
+
+// =============================================================================
+// Schedule Tab Content
+// =============================================================================
+function ScheduleTabContent({
+    reservations,
+    onCreateClick,
+}: {
+    reservations: Reservation[];
+    onCreateClick: () => void;
+}) {
+    const table = useReactTable({
+        data: reservations,
+        columns: reservationColumns,
+        getCoreRowModel: getCoreRowModel(),
+        getRowId: (row) => row.id,
+    });
+
+    return (
+        <div className="space-y-4">
+            {/* Toolbar */}
+            <div className="flex items-center justify-between">
+                <p className="text-sm text-gray-500">
+                    {reservations.length} reservation{reservations.length !== 1 ? "s" : ""}
+                </p>
+                <Button
+                    className="gap-2 bg-primary-500 hover:bg-primary-600"
+                    onClick={onCreateClick}
+                >
+                    <Plus className="h-4 w-4" /> New Reservation
+                </Button>
+            </div>
+
+            {/* Table */}
+            {reservations.length === 0 ? (
+                <Card className="shadow-sm border-gray-200">
+                    <CardContent className="flex flex-col items-center justify-center py-12 text-gray-500">
+                        <Calendar className="h-8 w-8 mb-3 text-gray-400" />
+                        <p className="font-medium">No reservations yet</p>
+                        <p className="text-sm mt-1">Schedule the first reservation for this facility.</p>
+                    </CardContent>
+                </Card>
+            ) : (
+                <Card className="shadow-sm border-gray-200 overflow-hidden">
+                    <Table>
+                        <TableHeader>
+                            {table.getHeaderGroups().map((headerGroup) => (
+                                <TableRow key={headerGroup.id}>
+                                    {headerGroup.headers.map((header) => (
+                                        <TableHead key={header.id}>
+                                            {header.isPlaceholder
+                                                ? null
+                                                : flexRender(
+                                                    header.column.columnDef.header,
+                                                    header.getContext()
+                                                )}
+                                        </TableHead>
+                                    ))}
+                                </TableRow>
+                            ))}
+                        </TableHeader>
+                        <TableBody>
+                            {table.getRowModel().rows.map((row) => (
+                                <TableRow key={row.id}>
+                                    {row.getVisibleCells().map((cell) => (
+                                        <TableCell key={cell.id}>
+                                            {flexRender(
+                                                cell.column.columnDef.cell,
+                                                cell.getContext()
+                                            )}
+                                        </TableCell>
+                                    ))}
+                                </TableRow>
+                            ))}
+                        </TableBody>
+                    </Table>
+                </Card>
+            )}
         </div>
     );
 }
