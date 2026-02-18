@@ -27,47 +27,11 @@ import {
     FacilityWithAnalytics,
     FacilityTransaction,
     AvailabilitySlot,
+    ReservationConfig,
 } from "@/lib/services/facilities";
 import { cn } from "@/lib/utils";
 
-// =============================================================================
-// Stub Income Data (since reservation support isn't ready yet)
-// =============================================================================
-const STUB_INCOME: FacilityTransaction[] = [
-    {
-        id: "1",
-        transaction_type: "INCOME",
-        amount: 200,
-        category: "Rental Income",
-        description: "John Smith - Unit A-102",
-        payment_method: "CASH",
-        transaction_date: "2024-01-20",
-        reservation_id: null,
-        created_at: "2024-01-20T08:00:00Z",
-    },
-    {
-        id: "2",
-        transaction_type: "INCOME",
-        amount: 200,
-        category: "Rental Income",
-        description: "Michael Martin - Unit A-105",
-        payment_method: "CASH",
-        transaction_date: "2024-02-20",
-        reservation_id: null,
-        created_at: "2024-02-20T08:00:00Z",
-    },
-    {
-        id: "3",
-        transaction_type: "INCOME",
-        amount: 300,
-        category: "Rental Income",
-        description: "Rizel Gabrielle - Unit B-105",
-        payment_method: "CASH",
-        transaction_date: "2024-03-20",
-        reservation_id: null,
-        created_at: "2024-03-20T08:00:00Z",
-    },
-];
+
 
 // =============================================================================
 // Timeline Component
@@ -195,7 +159,9 @@ export default function FacilityDetailPage() {
         null
     );
     const [expenses, setExpenses] = React.useState<FacilityTransaction[]>([]);
+    const [income, setIncome] = React.useState<FacilityTransaction[]>([]);
     const [availability, setAvailability] = React.useState<AvailabilitySlot[]>([]);
+    const [config, setConfig] = React.useState<ReservationConfig | null>(null);
     const [isLoading, setIsLoading] = React.useState(true);
     const [error, setError] = React.useState<string | null>(null);
 
@@ -219,8 +185,23 @@ export default function FacilityDetailPage() {
                     const expenseData = await facilitiesApi.getTransactions(id, "EXPENSE");
                     setExpenses(expenseData);
                 } catch {
-                    // Expenses might be empty
                     setExpenses([]);
+                }
+
+                // Fetch income transactions
+                try {
+                    const incomeData = await facilitiesApi.getTransactions(id, "INCOME");
+                    setIncome(incomeData);
+                } catch {
+                    setIncome([]);
+                }
+
+                // Fetch reservation config (for operating hours)
+                try {
+                    const configData = await facilitiesApi.getConfig();
+                    setConfig(configData);
+                } catch {
+                    // Config might not exist yet
                 }
 
                 // Fetch today's availability
@@ -358,8 +339,9 @@ export default function FacilityDetailPage() {
                                                 <Clock className="h-4 w-4 text-gray-400" />
                                                 <span className="text-gray-500">Availability:</span>
                                                 <span className="font-medium">
-                                                    {facility.min_duration_hours}AM -{" "}
-                                                    {facility.max_duration_hours}PM
+                                                    {config
+                                                        ? `${config.operating_hours_start} - ${config.operating_hours_end}`
+                                                        : "9:00 AM - 10:00 PM"}
                                                 </span>
                                             </div>
                                             <div className="flex items-center gap-2">
@@ -466,9 +448,13 @@ export default function FacilityDetailPage() {
                         {/* Right Column */}
                         <div className="space-y-6">
                             {/* Today's Timeline */}
-                            <ReservationTimeline slots={availability} />
+                            <ReservationTimeline
+                                slots={availability}
+                                operatingStart={config ? parseInt(config.operating_hours_start.split(':')[0]) : 9}
+                                operatingEnd={config ? parseInt(config.operating_hours_end.split(':')[0]) : 22}
+                            />
 
-                            {/* Income Section (Stub Data) */}
+                            {/* Income Section */}
                             <Card className="shadow-sm border-gray-200">
                                 <CardHeader className="pb-2 flex flex-row items-center justify-between">
                                     <CardTitle className="text-base font-medium">
@@ -479,13 +465,19 @@ export default function FacilityDetailPage() {
                                     </Button>
                                 </CardHeader>
                                 <CardContent>
-                                    {STUB_INCOME.map((inc) => (
-                                        <TransactionItem
-                                            key={inc.id}
-                                            transaction={inc}
-                                            type="income"
-                                        />
-                                    ))}
+                                    {income.length > 0 ? (
+                                        income.map((inc) => (
+                                            <TransactionItem
+                                                key={inc.id}
+                                                transaction={inc}
+                                                type="income"
+                                            />
+                                        ))
+                                    ) : (
+                                        <p className="text-sm text-gray-500 text-center py-4">
+                                            No income recorded yet.
+                                        </p>
+                                    )}
                                 </CardContent>
                             </Card>
                         </div>
